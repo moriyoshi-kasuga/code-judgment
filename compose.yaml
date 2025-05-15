@@ -1,0 +1,7 @@
+services:
+  runner:
+    build:
+      context: ./runner
+      dockerfile: Dockerfile
+    init: true
+    command: sleep infinity
