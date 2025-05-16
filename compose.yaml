@@ -5,3 +5,7 @@ services:
       dockerfile: Dockerfile
     init: true
     command: sleep infinity
+
+    # TODO: split permission scope
+    privileged: true
+    cgroup: "host"
