@@ -10,3 +10,8 @@ repository = "https://github.com/moriyoshi-kasuga/code-judgment"
 [workspace.dependencies]
 serde = { version = "=1.0.219", features = ["derive"] }
 serde_json = { version = "=1.0.140" }
+thiserror = { version = "=2.0.12" }
+
+[workspace.lints.clippy]
+unwrap_used = "deny"
+expect_used = "deny"
