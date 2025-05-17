@@ -5,5 +5,11 @@ package runner;
 message GrpcRunnerRequest {
   uint32 lang = 1;
   string code = 2;
-  uint64 time_limit = 3;
+  uint64 ms_time_limit = 3;
+  uint64 memory_limit = 4;
+  string stdin = 5;
+}
+
+message GrpcRunnerResponse {
+  string state = 1;
 }
