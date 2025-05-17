@@ -6,7 +6,7 @@ tonic::include_proto!("runner");
 pub struct RunnerRequest {
     pub lang: Language,
     pub code: String,
-    pub timeout: MsTime,
+    pub ms_time_limit: MsTime,
     pub memory_limit: Memory,
     pub stdin: Option<String>,
 }

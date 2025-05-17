@@ -6,20 +6,20 @@ pub enum RunnerState {
         stdout: String,
 
         max_memory_usage: Memory,
-        time_elapsed: MsTime,
+        ms_time_elapsed: MsTime,
     },
     RuntimeError {
         stderr: String,
         exit_code: i32,
 
         max_memory_usage: Memory,
-        time_elapsed: MsTime,
+        ms_time_elapsed: MsTime,
     },
     Timeout {
-        duration: MsTime,
+        ms_time_elapsed: MsTime,
     },
     MemoryLimit {
-        memory: Memory,
+        max_memory_usage: Memory,
     },
     CompileError {
         stderr: String,
