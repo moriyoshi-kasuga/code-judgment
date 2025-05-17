@@ -13,8 +13,8 @@
 )]
 #[repr(u32)]
 pub enum Language {
-    Rust1_86 = 1,
-    Go1_24 = 2,
+    Rust1_82 = 1,
+    Go1_23 = 2,
     Python3_13 = 3,
 }
 

@@ -95,7 +95,7 @@ mod tests {
     #[test]
     fn test_grpc_request_conversion() {
         let request = RunnerRequest {
-            lang: Language::Rust1_86,
+            lang: Language::Rust1_82,
             code: "fn main() { println!(\"Hello, world!\"); }".to_string(),
             ms_time_limit: MsTime::new_ms(1000),
             memory_limit: Memory::new_bytes(1024 * 1024),
