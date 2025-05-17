@@ -17,9 +17,3 @@ pub enum Language {
     Go1_23 = 2,
     Python3_13 = 3,
 }
-
-impl Language {
-    pub const fn as_u32(self) -> u32 {
-        self as u32
-    }
-}

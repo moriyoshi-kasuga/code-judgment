@@ -27,7 +27,7 @@ pub struct RunnerResponse {
 impl RunnerRequest {
     pub fn into_grpc(self) -> GrpcRunnerRequest {
         GrpcRunnerRequest {
-            lang: self.lang.as_u32(),
+            lang: self.lang.into(),
             code: self.code,
             ms_time_limit: self.ms_time_limit.as_ms(),
             memory_limit: self.memory_limit.as_bytes(),
