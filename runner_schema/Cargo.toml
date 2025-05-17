@@ -3,11 +3,17 @@ name = "runner_schema"
 edition.workspace = true
 version.workspace = true
 repository.workspace = true
+build = "build.rs"
 
 [dependencies]
 serde.workspace = true
 serde_json.workspace = true
 thiserror.workspace = true
+tonic.workspace = true
+prost.workspace = true
+
+[build-dependencies]
+tonic-build = { version = "=0.13.1", features = ["prost"] }
 
 [lints]
 workspace = true

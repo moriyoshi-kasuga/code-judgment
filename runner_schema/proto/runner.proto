@@ -1,0 +1,9 @@
+syntax = "proto3";
+
+package runner;
+
+message GrpcRunnerRequest {
+  uint32 lang = 1;
+  string code = 2;
+  uint64 time_limit = 3;
+}
