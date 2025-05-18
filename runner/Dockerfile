@@ -18,8 +18,8 @@ FROM nixos/nix:2.28.3 AS runner
 
 COPY runner/docker.nix /default.nix
 RUN mkdir /runner /running
-INCLUDE runner/Dockerfile.build
 RUN nix-env -iA nixpkgs.time nixpkgs.nsjail
+INCLUDE runner/Dockerfile.build
 
 COPY --from=builder /build/runner /runner/runner
 
