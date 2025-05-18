@@ -14,6 +14,9 @@ envman.workspace = true
 log.workspace = true
 ulid.workspace = true
 more-convert.workspace = true
+tokio.workspace = true
+axum.workspace = true
+env_logger.workspace = true
 
 [lints]
 workspace = true
