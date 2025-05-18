@@ -18,14 +18,18 @@ fn main() {
 
     let build = builds.join(" && \\ \n  ");
 
-    std::fs::write(
-        "Dockerfile.build",
-        format!(
-            "# This file is auto-generated. Do not edit it directly.
+    let text = format!(
+        "# This file is auto-generated. Do not edit it directly.
 RUN {}
 ",
-            build
-        ),
-    )
-    .unwrap();
+        build
+    );
+
+    if let Ok(read_text) = std::fs::read("Dockerfile.build") {
+        if read_text == text.as_bytes() {
+            return;
+        }
+    }
+
+    std::fs::write("Dockerfile.build", text).unwrap();
 }
