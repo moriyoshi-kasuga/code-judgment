@@ -3,6 +3,8 @@ use std::sync::LazyLock;
 use envman::EnvMan;
 use runner_schema::web::{RunnerRequest, RunnerResponse};
 
+pub mod lang;
+
 mod env;
 pub use env::RunnerEnv;
 
