@@ -80,6 +80,12 @@ dependencies = [
 [[package]]
 name = "runner"
 version = "0.1.0"
+dependencies = [
+ "runner-schema",
+ "serde",
+ "serde_json",
+ "thiserror",
+]
 
 [[package]]
 name = "runner-schema"
