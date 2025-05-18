@@ -1,7 +1,7 @@
 FROM nixos/nix:2.28.3
 
 COPY default.nix /default.nix
-RUN mkdir /runner
+RUN mkdir /runner /running
 
 RUN nix-build /default.nix -A rustc182Env --out-link /runner/rustc182Env
 RUN nix-build /default.nix -A go123Env --out-link /runner/go123Env

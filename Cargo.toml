@@ -17,6 +17,7 @@ tokio = { version = "=1.45.0", features = ["full"] }
 more-convert = { version = "=0.13.0" }
 envman = { version = "=1.2.3", features = ["derive"] }
 log = "=0.4.27"
+ulid = "=1.2.1"
 
 [workspace.lints.clippy]
 unwrap_used = "deny"

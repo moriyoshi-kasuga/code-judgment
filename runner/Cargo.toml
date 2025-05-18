@@ -12,6 +12,8 @@ serde.workspace = true
 serde_json.workspace = true
 envman.workspace = true
 log.workspace = true
+ulid.workspace = true
+more-convert.workspace = true
 
 [lints]
 workspace = true

@@ -15,6 +15,32 @@ pub enum LangRunner {
     },
 }
 
+impl LangRunner {
+    pub fn file_name(&self) -> Option<&'static str> {
+        match self {
+            LangRunner::WithCompile { file_name, .. } => Some(file_name),
+            LangRunner::WithoutCompile { file_name, .. } => Some(file_name),
+            LangRunner::Inline { .. } => None,
+        }
+    }
+
+    pub fn compile_cmd(&self) -> Option<&'static str> {
+        match self {
+            LangRunner::WithCompile { compile_cmd, .. } => Some(compile_cmd),
+            LangRunner::WithoutCompile { .. } => None,
+            LangRunner::Inline { .. } => None,
+        }
+    }
+
+    pub fn run_cmd(&self) -> &'static str {
+        match self {
+            LangRunner::WithCompile { run_cmd, .. } => run_cmd,
+            LangRunner::WithoutCompile { run_cmd, .. } => run_cmd,
+            LangRunner::Inline { run_cmd } => run_cmd,
+        }
+    }
+}
+
 pub fn lang_into_runner(lang: Language) -> &'static LangRunner {
     match lang {
         Language::Rust1_82 => &LangRunner::WithCompile {
