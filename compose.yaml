@@ -1,10 +1,9 @@
 services:
   runner:
     build:
-      context: ./runner
-      dockerfile: Dockerfile
-    init: true
-    command: sleep infinity
+      context: .
+      dockerfile: runner/Dockerfile
+      target: runner
     env_file:
       - .env
 
@@ -13,3 +12,5 @@ services:
     cgroup: "host"
     volumes:
       - /sys/fs/cgroup:/sys/fs/cgroup:rw
+    ports:
+      - 3000:3000

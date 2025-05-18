@@ -18,5 +18,9 @@ tokio.workspace = true
 axum.workspace = true
 env_logger.workspace = true
 
+[build-dependencies]
+runner-schema.workspace = true
+more-convert.workspace = true
+
 [lints]
 workspace = true
