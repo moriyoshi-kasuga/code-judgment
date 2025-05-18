@@ -49,9 +49,18 @@ impl<'a> NsJailBuilder<'a> {
         command.arg("--user").arg("99999");
         command.arg("--group").arg("99999");
         command.arg("--chroot").arg("/");
-        command.arg("--disable_proc");
-        command.arg("--detect_cgroupv2");
         command.arg("--max_cpus").arg("1");
+        command.arg("--detect_cgroupv2");
+
+        command
+            .arg("--disable_proc")
+            .arg("--disable_clone_newnet")
+            .arg("--disable_clone_newuser")
+            .arg("--disable_clone_newns")
+            .arg("--disable_clone_newpid")
+            .arg("--disable_clone_newipc")
+            .arg("--disable_clone_newuts")
+            .arg("--disable_clone_newcgroup");
 
         if let Some(time_limit) = self.time_limit {
             command
@@ -81,6 +90,8 @@ impl<'a> NsJailBuilder<'a> {
             .arg(SH_CMD)
             .arg("-c")
             .arg(self.target_command);
+
+        log::debug!("NsJail command: {:?}", command);
 
         command
     }
