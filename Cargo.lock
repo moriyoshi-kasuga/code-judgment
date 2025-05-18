@@ -463,9 +463,9 @@ dependencies = [
 
 [[package]]
 name = "more-convert"
-version = "0.12.1"
+version = "0.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "af49ce1f86dd912b93a734ba26a1aede0bab8a49775ae43009760718675517b4"
+checksum = "87adf61e17d35e6c6e93253c7909c625acc0fca4f21c90cdc6f5b0727f1003bb"
 dependencies = [
  "more-convert-derive",
  "thiserror",
@@ -473,9 +473,9 @@ dependencies = [
 
 [[package]]
 name = "more-convert-derive"
-version = "0.12.1"
+version = "0.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "78f5ff77c2cb459dda5e9a91e0f780eaa641eebf66ab12ac91711ec301f0cc00"
+checksum = "ea9e328537096ee96e464f6d275ebdbdf26abbc6c67b63a0897d4828398123bb"
 dependencies = [
  "more-convert-derive-internal",
  "syn",
@@ -483,9 +483,9 @@ dependencies = [
 
 [[package]]
 name = "more-convert-derive-internal"
-version = "0.12.1"
+version = "0.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8438cce2efebcb0acc0e64511a5115c83544121d22d8b9126ddb531243643741"
+checksum = "13329280ac66391c8be7f2c383d1778d6b7abb65f64b5e161c408061282aaa57"
 dependencies = [
  "convert_case",
  "proc-macro2",

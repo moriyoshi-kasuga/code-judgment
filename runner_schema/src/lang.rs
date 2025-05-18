@@ -10,6 +10,7 @@
     serde::Serialize,
     serde::Deserialize,
     more_convert::EnumRepr,
+    more_convert::EnumArray,
 )]
 #[repr(u32)]
 pub enum Language {
