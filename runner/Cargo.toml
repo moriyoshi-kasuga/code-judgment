@@ -1,0 +1,26 @@
+[package]
+name = "runner"
+edition.workspace = true
+version.workspace = true
+repository.workspace = true
+
+[dependencies]
+runner-schema.workspace = true
+
+thiserror.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+envman.workspace = true
+log.workspace = true
+ulid.workspace = true
+more-convert.workspace = true
+tokio.workspace = true
+axum.workspace = true
+env_logger.workspace = true
+
+[build-dependencies]
+runner-schema.workspace = true
+more-convert.workspace = true
+
+[lints]
+workspace = true
