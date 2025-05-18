@@ -11,8 +11,13 @@ pub enum LangRunner {
         run_cmd: &'static str,
     },
     Inline {
-        run_cmd: &'static str,
+        run_cmd: fn(&str) -> String,
     },
+}
+
+pub enum RunCommand {
+    WithCode { run_cmd: fn(&str) -> String },
+    Static { run_cmd: &'static str },
 }
 
 impl LangRunner {
@@ -32,11 +37,11 @@ impl LangRunner {
         }
     }
 
-    pub fn run_cmd(&self) -> &'static str {
+    pub fn run_cmd(&self) -> RunCommand {
         match self {
-            LangRunner::WithCompile { run_cmd, .. } => run_cmd,
-            LangRunner::WithoutCompile { run_cmd, .. } => run_cmd,
-            LangRunner::Inline { run_cmd } => run_cmd,
+            LangRunner::WithCompile { run_cmd, .. } => RunCommand::Static { run_cmd },
+            LangRunner::WithoutCompile { run_cmd, .. } => RunCommand::Static { run_cmd },
+            LangRunner::Inline { run_cmd } => RunCommand::WithCode { run_cmd: *run_cmd },
         }
     }
 }

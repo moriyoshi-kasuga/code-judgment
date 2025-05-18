@@ -35,7 +35,10 @@ pub fn run(request: RunnerRequest) -> Result<RunnerResponse> {
     std::fs::create_dir(&current_dir)?;
 
     if let Some(file_name) = lang_runner.file_name() {
-        std::fs::write(format!("{}/{}", current_dir, file_name), request.code)?;
+        std::fs::write(
+            format!("{}/{}", current_dir, file_name),
+            request.code.clone(),
+        )?;
     }
 
     let bin_path = format!("{}/{}/bin", RUNNER_PATH, request.lang.variant_name());
@@ -60,10 +63,15 @@ pub fn run(request: RunnerRequest) -> Result<RunnerResponse> {
         }
     }
 
-    log::debug!("Run command: {}", lang_runner.run_cmd());
+    let run_cmd = match lang_runner.run_cmd() {
+        lang::RunCommand::WithCode { run_cmd } => run_cmd(&request.code),
+        lang::RunCommand::Static { run_cmd } => run_cmd.to_string(),
+    };
+
+    log::debug!("Run command: {}", run_cmd);
     let child = std::process::Command::new("sh")
         .arg("-c")
-        .arg(lang_runner.run_cmd())
+        .arg(run_cmd)
         .env("PATH", &bin_path)
         .current_dir(&current_dir)
         .spawn()?;
