@@ -1,5 +1,5 @@
 [workspace]
-members = ["backend", "runner", "runner_schema"]
+members = ["backend", "runner", "runner-schema"]
 resolver = "3"
 
 [workspace.package]

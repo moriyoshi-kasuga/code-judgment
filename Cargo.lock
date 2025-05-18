@@ -82,7 +82,7 @@ name = "runner"
 version = "0.1.0"
 
 [[package]]
-name = "runner_schema"
+name = "runner-schema"
 version = "0.1.0"
 dependencies = [
  "more-convert",

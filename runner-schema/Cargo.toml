@@ -1,5 +1,5 @@
 [package]
-name = "runner_schema"
+name = "runner-schema"
 edition.workspace = true
 version.workspace = true
 repository.workspace = true
