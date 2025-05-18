@@ -2,7 +2,7 @@
 
 let
   rust182 = pkgs.buildEnv {
-    name = "rustc182Env";
+    name = "rustc182";
     paths = [ pkgs.rustc pkgs.gcc14 ];
   };
 in

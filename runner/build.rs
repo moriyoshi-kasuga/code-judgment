@@ -16,16 +16,13 @@ fn main() {
         })
         .collect::<Vec<_>>();
 
-    let build = builds.join(" && \n  ");
+    let build = builds.join(" && \\ \n  ");
 
     std::fs::write(
-        "build.sh",
+        "Dockerfile.build",
         format!(
-            "#!/usr/bin/env bash
-set -e
-set -x
-
-{}
+            "# This file is auto-generated. Do not edit it directly.
+RUN {}
 ",
             build
         ),

@@ -34,6 +34,8 @@ pub fn run(request: RunnerRequest) -> Result<RunnerResponse> {
     let current_dir = format!("{}/{}", RUNNING_PATH, uid);
     std::fs::create_dir(&current_dir)?;
 
+    log::debug!("Starting runner in directory: {}", current_dir);
+
     if let Some(file_name) = lang_runner.file_name() {
         std::fs::write(
             format!("{}/{}", current_dir, file_name),
@@ -42,6 +44,8 @@ pub fn run(request: RunnerRequest) -> Result<RunnerResponse> {
     }
 
     let bin_path = format!("{}/{}/bin", RUNNER_PATH, request.lang.variant_name());
+
+    log::debug!("Bin path: {}", bin_path);
 
     if let Some(compile_cmd) = lang_runner.compile_cmd() {
         log::debug!("Compile command: {}", compile_cmd);
