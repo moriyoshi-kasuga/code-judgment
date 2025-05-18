@@ -16,10 +16,57 @@ dependencies = [
 ]
 
 [[package]]
+name = "convert_case"
+version = "0.8.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "baaaa0ecca5b51987b9423ccdc971514dd8b0bb7b4060b983d3664dad3f1f89f"
+dependencies = [
+ "unicode-segmentation",
+]
+
+[[package]]
+name = "envman"
+version = "1.2.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0ee2ca7c12548da92407785e7dffce5ec0b30806fbf1d45eab9891e01ff69c08"
+dependencies = [
+ "envman_derive",
+ "thiserror",
+]
+
+[[package]]
+name = "envman_derive"
+version = "1.2.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "33023d801bd8a2f1558370fc607dd96e24978d43503625f042b6d65a09cea366"
+dependencies = [
+ "envman_derive_internals",
+ "syn",
+]
+
+[[package]]
+name = "envman_derive_internals"
+version = "1.2.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "60c12b465ca0426a2f10c318d24a5813af71a0c2eafe5fea3270b6bb95e45a2d"
+dependencies = [
+ "convert_case 0.8.0",
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
 name = "itoa"
 version = "1.0.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4a5f13b858c8d314ee3e8f639011f7ccefe71f97f96e50151fb991f267928e2c"
+
+[[package]]
+name = "log"
+version = "0.4.27"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "13dc2df351e3202783a1fe0d44375f7295ffb4049267b0f3018346dc122a1d94"
 
 [[package]]
 name = "memchr"
@@ -53,7 +100,7 @@ version = "0.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "13329280ac66391c8be7f2c383d1778d6b7abb65f64b5e161c408061282aaa57"
 dependencies = [
- "convert_case",
+ "convert_case 0.7.1",
  "proc-macro2",
  "quote",
  "syn",
@@ -81,6 +128,8 @@ dependencies = [
 name = "runner"
 version = "0.1.0"
 dependencies = [
+ "envman",
+ "log",
  "runner-schema",
  "serde",
  "serde_json",

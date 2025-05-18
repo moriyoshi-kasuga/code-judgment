@@ -10,6 +10,8 @@ runner-schema.workspace = true
 thiserror.workspace = true
 serde.workspace = true
 serde_json.workspace = true
+envman.workspace = true
+log.workspace = true
 
 [lints]
 workspace = true
