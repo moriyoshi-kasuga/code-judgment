@@ -1,7 +1,7 @@
 use more_convert::VariantName;
-use std::sync::LazyLock;
+use std::{io::Write, process::Stdio, sync::LazyLock};
 
-use env::{RUNNER_PATH, RUNNING_PATH};
+use env::{RUNNER_PATH, RUNNING_PATH, SH_CMD};
 use envman::EnvMan;
 use runner_schema::{
     memory::Memory,
@@ -50,11 +50,12 @@ pub fn run(request: RunnerRequest) -> Result<RunnerResponse> {
     if let Some(compile_cmd) = lang_runner.compile_cmd() {
         log::debug!("Compile command: {}", compile_cmd);
 
-        let child = std::process::Command::new("sh")
+        let child = std::process::Command::new(SH_CMD)
             .arg("-c")
             .arg(compile_cmd)
             .env("PATH", &bin_path)
             .current_dir(&current_dir)
+            .stderr(Stdio::piped())
             .spawn()?;
 
         let output = child.wait_with_output()?;
@@ -73,12 +74,22 @@ pub fn run(request: RunnerRequest) -> Result<RunnerResponse> {
     };
 
     log::debug!("Run command: {}", run_cmd);
-    let child = std::process::Command::new("sh")
+    let mut child = std::process::Command::new(SH_CMD)
         .arg("-c")
         .arg(run_cmd)
         .env("PATH", &bin_path)
         .current_dir(&current_dir)
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
         .spawn()?;
+
+    let stdin = child
+        .stdin
+        .as_mut()
+        .ok_or_else(|| Error::IO(std::io::Error::other("Failed to open stdin")))?;
+
+    stdin.write_all(request.stdin.as_bytes())?;
 
     let output = child.wait_with_output()?;
     if !output.status.success() {
