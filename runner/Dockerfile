@@ -9,6 +9,9 @@ RUN nix-build /default.nix -A python313Env --out-link /runner/python313Env
 
 RUN nix-env -iA nixpkgs.time nixpkgs.nsjail
 
-# NOTE: this is sample code. todo remove
+# # for testing
+# RUN nix-env -iA nixpkgs.vim
+
+# # this is sample code. todo remove
 # nsjail -Mo --chroot / --cgroup_mem_max 104 -- /root/.nix-profile/bin/echo "hey"
 # nsjail -Mo --chroot / --cgroup_mem_max 104 --use_cgroupv2 -- /root/.nix-profile/bin/echo "hey"
