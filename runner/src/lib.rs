@@ -1,7 +1,8 @@
 use more_convert::VariantName;
+use nsjail::NsJailBuilder;
 use std::{io::Write, process::Stdio, sync::LazyLock};
 
-use env::{RUNNER_PATH, RUNNING_PATH, SH_CMD};
+use env::{RUNNER_PATH, RUNNING_PATH};
 use envman::EnvMan;
 use runner_schema::{
     memory::Memory,
@@ -11,6 +12,7 @@ use runner_schema::{
 };
 
 pub mod lang;
+pub mod nsjail;
 
 mod env;
 pub use env::RunnerEnv;
@@ -50,11 +52,12 @@ pub fn run(request: RunnerRequest) -> Result<RunnerResponse> {
     if let Some(compile_cmd) = lang_runner.compile_cmd() {
         log::debug!("Compile command: {}", compile_cmd);
 
-        let child = std::process::Command::new(SH_CMD)
-            .arg("-c")
-            .arg(compile_cmd)
-            .env("PATH", &bin_path)
-            .current_dir(&current_dir)
+        let child = NsJailBuilder::new(compile_cmd)
+            .path(&bin_path)
+            .time_limit(MsTime::new_seconds(5))
+            .memory_limit(Memory::new_megabytes(128))
+            .cwd(&current_dir)
+            .build()
             .stderr(Stdio::piped())
             .spawn()?;
 
@@ -74,11 +77,12 @@ pub fn run(request: RunnerRequest) -> Result<RunnerResponse> {
     };
 
     log::debug!("Run command: {}", run_cmd);
-    let mut child = std::process::Command::new(SH_CMD)
-        .arg("-c")
-        .arg(run_cmd)
-        .env("PATH", &bin_path)
-        .current_dir(&current_dir)
+    let mut child = NsJailBuilder::new(&run_cmd)
+        .path(&bin_path)
+        .time_limit(request.ms_time_limit)
+        .memory_limit(request.memory_limit)
+        .cwd(&current_dir)
+        .build()
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
