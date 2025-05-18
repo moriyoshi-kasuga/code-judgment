@@ -2,7 +2,7 @@ use std::process::Command;
 
 use runner_schema::{memory::Memory, time::MsTime};
 
-use crate::env::SH_CMD;
+use crate::env::{NSJAIL_CMD, SH_CMD};
 
 pub struct NsJailBuilder<'a> {
     target_command: &'a str,
@@ -44,7 +44,7 @@ impl<'a> NsJailBuilder<'a> {
     }
 
     pub fn build(&self) -> Command {
-        let mut command = Command::new("nsjail");
+        let mut command = Command::new(NSJAIL_CMD);
         command.arg("-Mo");
         command.arg("--user").arg("99999");
         command.arg("--group").arg("99999");
