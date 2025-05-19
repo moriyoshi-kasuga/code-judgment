@@ -9,6 +9,8 @@ pub struct NsJailBuilder<'a> {
     memory_limit: Option<Memory>,
     path: Option<&'a str>,
     cwd: Option<&'a str>,
+    tmpfsmount: Option<&'a str>,
+    writable: bool,
 }
 
 impl Default for NsJailBuilder<'_> {
@@ -24,6 +26,8 @@ impl<'a> NsJailBuilder<'a> {
             memory_limit: None,
             path: None,
             cwd: None,
+            tmpfsmount: None,
+            writable: false,
         }
     }
 
@@ -44,6 +48,16 @@ impl<'a> NsJailBuilder<'a> {
 
     pub fn cwd(&mut self, cwd: &'a str) -> &mut Self {
         self.cwd = Some(cwd);
+        self
+    }
+
+    pub fn tmpfsmount(&mut self, tmpfsmount: &'a str) -> &mut Self {
+        self.tmpfsmount = Some(tmpfsmount);
+        self
+    }
+
+    pub fn writable(&mut self) -> &mut Self {
+        self.writable = true;
         self
     }
 
@@ -98,6 +112,15 @@ impl<'a> NsJailBuilder<'a> {
             command.current_dir(cwd);
         } else {
             command.arg("--chroot").arg("/");
+        }
+
+        if let Some(tmpfsmount) = self.tmpfsmount {
+            command.arg("--tmpfsmount").arg(tmpfsmount);
+            command.arg("--env").arg(format!("TMPDIR={}", tmpfsmount));
+        }
+
+        if self.writable {
+            command.arg("--rw");
         }
 
         command.arg("-R").arg(NIX_STORE_PATH);

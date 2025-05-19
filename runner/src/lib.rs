@@ -26,7 +26,8 @@ pub fn run(request: RunnerRequest, option: &RunnerEnv) -> Result<RunnerResponse>
     let uid = ulid::Ulid::new();
 
     let current_dir = format!("{}/{}", RUNNING_PATH, uid);
-    std::fs::create_dir_all(&current_dir)?;
+    std::fs::create_dir(&current_dir)?;
+    std::os::unix::fs::chown(&current_dir, Some(99999), Some(99999))?;
 
     log::debug!("Starting runner in directory: {}", current_dir);
 
@@ -48,6 +49,8 @@ pub fn run(request: RunnerRequest, option: &RunnerEnv) -> Result<RunnerResponse>
             .memory_limit(option.compile_memory_limit_megabytes)
             .cwd(&current_dir)
             .path(&bin_path)
+            .writable()
+            .tmpfsmount("/tmp")
             .build();
         command
             .arg(SH_CMD)

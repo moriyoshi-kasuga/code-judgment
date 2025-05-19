@@ -16,17 +16,15 @@ RUN --mount=type=cache,target=/app/target \
 
 FROM nixos/nix:2.28.3 AS runner
 
+RUN mkdir -p /running && \
+  mkdir -p /runner && \
+  chown -R 99999:99999 /running
+
 COPY runner/docker.nix /default.nix
-RUN nix-env --profile /nix/profile -iA nixpkgs.time nixpkgs.nsjail nixpkgs.bash
+RUN nix-env --profile /global -iA nixpkgs.time nixpkgs.nsjail nixpkgs.bash
+
 INCLUDE runner/Dockerfile.build
 
 COPY --from=builder /build/runner /runner/runner
 
 ENTRYPOINT [ "/runner/runner" ]
-
-# # for testing
-# RUN nix-env -iA nixpkgs.vim
-
-# # this is sample code. todo remove
-# nsjail -Mo --chroot / --cgroup_mem_max 104 -- /root/.nix-profile/bin/echo "hey"
-# nsjail -Mo --chroot / --cgroup_mem_max 104 --use_cgroupv2 -- /root/.nix-profile/bin/echo "hey"

@@ -2,10 +2,10 @@
 
 use more_convert::VariantName;
 
-pub const RUNNER_PATH: &str = "/nix/runner";
-pub const RUNNING_PATH: &str = "/nix/running";
+pub const RUNNER_PATH: &str = "/runner";
+pub const RUNNING_PATH: &str = "/running";
 pub const NIX_STORE_PATH: &str = "/nix/store";
-pub const NIX_BIN: &str = "/nix/profile/bin";
+pub const NIX_BIN: &str = "/global/bin";
 
 fn main() {
     println!("cargo:rustc-env=RUNNER_PATH={}", RUNNER_PATH);
