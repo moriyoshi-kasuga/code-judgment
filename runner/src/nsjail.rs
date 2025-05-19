@@ -11,7 +11,7 @@ pub struct NsJailBuilder<'a> {
     cwd: Option<&'a str>,
 }
 
-impl<'a> Default for NsJailBuilder<'a> {
+impl Default for NsJailBuilder<'_> {
     fn default() -> Self {
         Self::new()
     }
@@ -103,7 +103,7 @@ impl<'a> NsJailBuilder<'a> {
         command.arg("-R").arg(NIX_STORE_PATH);
         command.arg("-R").arg(NIX_BIN);
 
-        // command.arg("--log").arg("nsjail.txt");
+        command.arg("--log").arg("nsjail.txt");
 
         command.arg("--");
     }
