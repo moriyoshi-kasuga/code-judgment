@@ -2,20 +2,24 @@ use std::process::Command;
 
 use runner_schema::{memory::Memory, time::MsTime};
 
-use crate::env::{NSJAIL_CMD, SH_CMD};
+use crate::env::NSJAIL_CMD;
 
 pub struct NsJailBuilder<'a> {
-    target_command: &'a str,
     time_limit: Option<MsTime>,
     memory_limit: Option<Memory>,
     path: Option<&'a str>,
     cwd: Option<&'a str>,
 }
 
+impl<'a> Default for NsJailBuilder<'a> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl<'a> NsJailBuilder<'a> {
-    pub fn new(target_command: &'a str) -> Self {
+    pub fn new() -> Self {
         NsJailBuilder {
-            target_command,
             time_limit: None,
             memory_limit: None,
             path: None,
@@ -45,6 +49,16 @@ impl<'a> NsJailBuilder<'a> {
 
     pub fn build(&self) -> Command {
         let mut command = Command::new(NSJAIL_CMD);
+        self.write_args(&mut command);
+        command
+    }
+
+    pub fn write(&self, command: &mut Command) {
+        command.arg(NSJAIL_CMD);
+        self.write_args(command);
+    }
+
+    fn write_args(&self, command: &mut Command) {
         command.arg("-Mo");
         command.arg("--user").arg("99999");
         command.arg("--group").arg("99999");
@@ -65,7 +79,7 @@ impl<'a> NsJailBuilder<'a> {
         if let Some(time_limit) = self.time_limit {
             command
                 .arg("--time_limit")
-                .arg(time_limit.as_seconds().ceil().to_string());
+                .arg(time_limit.as_seconds_ceil().to_string());
         }
 
         if let Some(memory_limit) = self.memory_limit {
@@ -86,16 +100,8 @@ impl<'a> NsJailBuilder<'a> {
             command.current_dir(cwd);
         }
 
-        command.arg("--log").arg("log.txt");
+        command.arg("--log").arg("nsjail.txt");
 
-        command
-            .arg("--")
-            .arg(SH_CMD)
-            .arg("-c")
-            .arg(self.target_command);
-
-        log::debug!("NsJail command: {:?}", command);
-
-        command
+        command.arg("--");
     }
 }

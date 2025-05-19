@@ -1,8 +1,9 @@
 use more_convert::VariantName;
 use nsjail::NsJailBuilder;
 use std::{io::Write, process::Stdio, sync::LazyLock};
+use time::GTime;
 
-use env::{RUNNER_PATH, RUNNING_PATH};
+use env::{RUNNER_PATH, RUNNING_PATH, SH_CMD};
 use envman::EnvMan;
 use runner_schema::{
     memory::Memory,
@@ -13,6 +14,7 @@ use runner_schema::{
 
 pub mod lang;
 pub mod nsjail;
+pub mod time;
 
 mod env;
 pub use env::RunnerEnv;
@@ -52,12 +54,15 @@ pub fn run(request: RunnerRequest) -> Result<RunnerResponse> {
     if let Some(compile_cmd) = lang_runner.compile_cmd() {
         log::debug!("Compile command: {}", compile_cmd);
 
-        let child = NsJailBuilder::new(compile_cmd)
+        let child = NsJailBuilder::new()
             .path(&bin_path)
             .time_limit(MsTime::new_seconds(5))
             .memory_limit(Memory::new_megabytes(128))
             .cwd(&current_dir)
             .build()
+            .arg(SH_CMD)
+            .arg("-c")
+            .arg(compile_cmd)
             .stderr(Stdio::piped())
             .spawn()?;
 
@@ -77,12 +82,16 @@ pub fn run(request: RunnerRequest) -> Result<RunnerResponse> {
     };
 
     log::debug!("Run command: {}", run_cmd);
-    let mut child = NsJailBuilder::new(&run_cmd)
+    let mut command = GTime::new_cmd();
+    NsJailBuilder::new()
         .path(&bin_path)
         .time_limit(request.ms_time_limit)
         .memory_limit(request.memory_limit)
         .cwd(&current_dir)
-        .build()
+        .write(&mut command);
+    command.arg(run_cmd);
+    log::debug!("Command: {:?}", command);
+    let mut child = command
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
@@ -96,15 +105,16 @@ pub fn run(request: RunnerRequest) -> Result<RunnerResponse> {
     stdin.write_all(request.stdin.as_bytes())?;
 
     let output = child.wait_with_output()?;
+    let (memory, time) = GTime::read(&current_dir)?;
+
     if !output.status.success() {
         return Ok(RunnerResponse {
             state: RunnerState::RuntimeError {
                 stderr: String::from_utf8_lossy(&output.stderr).to_string(),
                 exit_code: output.status.code().unwrap_or(137),
 
-                // TODO: get memory usage and time elapsed
-                max_memory_usage: Memory::new_bytes(0),
-                ms_time_elapsed: MsTime::new_ms(0),
+                max_memory_usage: memory,
+                ms_time_elapsed: time,
             },
         });
     }
@@ -114,9 +124,8 @@ pub fn run(request: RunnerRequest) -> Result<RunnerResponse> {
         state: RunnerState::Success {
             stdout,
 
-            // TODO: get memory usage and time elapsed
-            max_memory_usage: Memory::new_bytes(0),
-            ms_time_elapsed: MsTime::new_ms(0),
+            max_memory_usage: memory,
+            ms_time_elapsed: time,
         },
     })
 }
