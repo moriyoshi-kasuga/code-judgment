@@ -26,15 +26,14 @@ pub fn run(request: RunnerRequest, option: &RunnerEnv) -> Result<RunnerResponse>
     let uid = ulid::Ulid::new();
 
     let current_dir = format!("{}/{}", RUNNING_PATH, uid);
-    std::fs::create_dir(&current_dir)?;
+    std::fs::create_dir_all(&current_dir)?;
 
     log::debug!("Starting runner in directory: {}", current_dir);
 
     if let Some(file_name) = lang_runner.file_name() {
-        std::fs::write(
-            format!("{}/{}", current_dir, file_name),
-            request.code.clone(),
-        )?;
+        let path = format!("{}/{}", current_dir, file_name);
+        log::debug!("Writing to File: {}", path);
+        std::fs::write(path, request.code.clone())?;
     }
 
     let bin_path = format!("{}/{}/bin", RUNNER_PATH, request.lang.variant_name());
@@ -44,17 +43,19 @@ pub fn run(request: RunnerRequest, option: &RunnerEnv) -> Result<RunnerResponse>
     if let Some(compile_cmd) = lang_runner.compile_cmd() {
         log::debug!("Compile command: {}", compile_cmd);
 
-        let child = NsJailBuilder::new()
-            .path(&bin_path)
+        let mut command = NsJailBuilder::new()
             .time_limit(option.compile_time_limit_seconds)
             .memory_limit(option.compile_memory_limit_megabytes)
             .cwd(&current_dir)
-            .build()
+            .path(&bin_path)
+            .build();
+        command
             .arg(SH_CMD)
             .arg("-c")
             .arg(compile_cmd)
-            .stderr(Stdio::piped())
-            .spawn()?;
+            .stderr(Stdio::piped());
+        log::debug!("Compile Command: {:?}", command);
+        let child = command.spawn()?;
 
         let output = child.wait_with_output()?;
         if !output.status.success() {
@@ -80,6 +81,7 @@ pub fn run(request: RunnerRequest, option: &RunnerEnv) -> Result<RunnerResponse>
         .cwd(&current_dir)
         .write(&mut command);
     command.arg(SH_CMD).arg("-c").arg(run_cmd);
+    log::debug!("Command: {:?}", command);
     let mut child = command
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())

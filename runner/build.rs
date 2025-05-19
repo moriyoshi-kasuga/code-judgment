@@ -2,9 +2,17 @@
 
 use more_convert::VariantName;
 
-pub const RUNNER_PATH: &str = "/runner";
+pub const RUNNER_PATH: &str = "/nix/runner";
+pub const RUNNING_PATH: &str = "/nix/running";
+pub const NIX_STORE_PATH: &str = "/nix/store";
+pub const NIX_BIN: &str = "/nix/profile/bin";
 
 fn main() {
+    println!("cargo:rustc-env=RUNNER_PATH={}", RUNNER_PATH);
+    println!("cargo:rustc-env=RUNNING_PATH={}", RUNNING_PATH);
+    println!("cargo:rustc-env=NIX_STORE_PATH={}", NIX_STORE_PATH);
+    println!("cargo:rustc-env=NIX_BIN={}", NIX_BIN);
+
     let builds = runner_schema::Language::VARIANTS
         .iter()
         .map(|lang| {

@@ -2,7 +2,7 @@ use std::process::Command;
 
 use runner_schema::{memory::Memory, time::MsTime};
 
-use crate::env::NSJAIL_CMD;
+use crate::env::{NIX_BIN, NIX_STORE_PATH, NSJAIL_CMD};
 
 pub struct NsJailBuilder<'a> {
     time_limit: Option<MsTime>,
@@ -62,7 +62,6 @@ impl<'a> NsJailBuilder<'a> {
         command.arg("-Mo");
         command.arg("--user").arg("99999");
         command.arg("--group").arg("99999");
-        command.arg("--chroot").arg("/");
         command.arg("--max_cpus").arg("1");
         command.arg("--detect_cgroupv2");
 
@@ -70,8 +69,6 @@ impl<'a> NsJailBuilder<'a> {
             .arg("--disable_proc")
             .arg("--disable_clone_newnet")
             .arg("--disable_clone_newuser")
-            .arg("--disable_clone_newns")
-            .arg("--disable_clone_newpid")
             .arg("--disable_clone_newipc")
             .arg("--disable_clone_newuts")
             .arg("--disable_clone_newcgroup");
@@ -93,14 +90,20 @@ impl<'a> NsJailBuilder<'a> {
 
         if let Some(path) = self.path {
             command.arg("--env").arg(format!("PATH={}", path));
+            command.arg("-R").arg(path);
         }
 
         if let Some(cwd) = self.cwd {
-            command.arg("--cwd").arg(cwd);
+            command.arg("--chroot").arg(cwd);
             command.current_dir(cwd);
+        } else {
+            command.arg("--chroot").arg("/");
         }
 
-        command.arg("--log").arg("nsjail.txt");
+        command.arg("-R").arg(NIX_STORE_PATH);
+        command.arg("-R").arg(NIX_BIN);
+
+        // command.arg("--log").arg("nsjail.txt");
 
         command.arg("--");
     }

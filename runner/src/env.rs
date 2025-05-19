@@ -16,8 +16,10 @@ fn compile_memory_limit_megabytes(value: &str) -> Result<Memory, <u64 as std::st
     value.parse::<u64>().map(Memory::new_megabytes)
 }
 
-pub const RUNNER_PATH: &str = "/runner";
-pub const RUNNING_PATH: &str = "/running";
-pub const SH_CMD: &str = "/root/.nix-profile/bin/sh";
-pub const NSJAIL_CMD: &str = "/root/.nix-profile/bin/nsjail";
-pub const TIME_CMD: &str = "/root/.nix-profile/bin/time";
+pub const RUNNER_PATH: &str = env!("RUNNER_PATH");
+pub const RUNNING_PATH: &str = env!("RUNNING_PATH");
+pub const NIX_STORE_PATH: &str = env!("NIX_STORE_PATH");
+pub const NIX_BIN: &str = env!("NIX_BIN");
+pub const SH_CMD: &str = concat!(env!("NIX_BIN"), "/sh");
+pub const NSJAIL_CMD: &str = concat!(env!("NIX_BIN"), "/nsjail");
+pub const TIME_CMD: &str = concat!(env!("NIX_BIN"), "/time");

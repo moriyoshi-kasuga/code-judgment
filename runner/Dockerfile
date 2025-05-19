@@ -17,8 +17,7 @@ RUN --mount=type=cache,target=/app/target \
 FROM nixos/nix:2.28.3 AS runner
 
 COPY runner/docker.nix /default.nix
-RUN mkdir /runner /running
-RUN nix-env -iA nixpkgs.time nixpkgs.nsjail
+RUN nix-env --profile /nix/profile -iA nixpkgs.time nixpkgs.nsjail nixpkgs.bash
 INCLUDE runner/Dockerfile.build
 
 COPY --from=builder /build/runner /runner/runner
