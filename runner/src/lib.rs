@@ -85,11 +85,11 @@ pub fn run(request: RunnerRequest) -> Result<RunnerResponse> {
     let mut command = GTime::new_cmd();
     NsJailBuilder::new()
         .path(&bin_path)
-        .time_limit(request.ms_time_limit)
+        .time_limit(request.ms_time_limit.add_seconds(1))
         .memory_limit(request.memory_limit)
         .cwd(&current_dir)
         .write(&mut command);
-    command.arg(run_cmd);
+    command.arg(SH_CMD).arg("-c").arg(run_cmd);
     log::debug!("Command: {:?}", command);
     let mut child = command
         .stdin(Stdio::piped())
@@ -106,6 +106,23 @@ pub fn run(request: RunnerRequest) -> Result<RunnerResponse> {
 
     let output = child.wait_with_output()?;
     let (memory, time) = GTime::read(&current_dir)?;
+    log::debug!("Memory: {:?}, Time: {:?}", memory, time);
+
+    if time > request.ms_time_limit {
+        return Ok(RunnerResponse {
+            state: RunnerState::Timeout {
+                ms_time_elapsed: time,
+            },
+        });
+    }
+
+    if memory > request.memory_limit {
+        return Ok(RunnerResponse {
+            state: RunnerState::MemoryLimit {
+                max_memory_usage: memory,
+            },
+        });
+    }
 
     if !output.status.success() {
         return Ok(RunnerResponse {
