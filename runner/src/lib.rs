@@ -20,10 +20,10 @@ pub mod error;
 pub use error::{Error, Result};
 
 pub fn run(request: RunnerRequest, option: &RunnerEnv) -> Result<RunnerResponse> {
-    log::debug!("Started runner with request: {:?}", request);
+    let uid = ulid::Ulid::new();
+    log::debug!("Started runner {}: {:#?}", uid, request);
 
     let lang_runner = lang::lang_into_runner(request.lang);
-    let uid = ulid::Ulid::new();
 
     let current_dir = format!("{}/{}", RUNNING_PATH, uid);
     std::fs::create_dir(&current_dir)?;
@@ -39,28 +39,26 @@ pub fn run(request: RunnerRequest, option: &RunnerEnv) -> Result<RunnerResponse>
 
     let bin_path = format!("{}/{}/bin", RUNNER_PATH, request.lang.variant_name());
 
-    log::debug!("Bin path: {}", bin_path);
-
     if let Some(compile_cmd) = lang_runner.compile_cmd() {
         log::debug!("Compile command: {}", compile_cmd);
 
-        let mut command = NsJailBuilder::new()
+        let mut command = GTime::new_cmd();
+        NsJailBuilder::new()
             .time_limit(option.compile_time_limit_seconds)
             .memory_limit(option.compile_memory_limit_megabytes)
             .cwd(&current_dir)
             .path(&bin_path)
             .writable()
             .tmpfsmount("/tmp")
-            .build();
-        command
-            .arg(SH_CMD)
-            .arg("-c")
-            .arg(compile_cmd)
-            .stderr(Stdio::piped());
-        log::debug!("Compile Command: {:?}", command);
-        let child = command.spawn()?;
+            .write(&mut command);
+
+        command.arg(SH_CMD).arg("-c").arg(compile_cmd);
+
+        let child = command.stderr(Stdio::piped()).spawn()?;
 
         let output = child.wait_with_output()?;
+        let (memory, time) = GTime::read(&current_dir)?;
+        log::debug!("Compile Memory: {:?}, Time: {:?}", memory, time);
         if !output.status.success() {
             return Ok(RunnerResponse {
                 state: RunnerState::CompileError {
@@ -84,7 +82,6 @@ pub fn run(request: RunnerRequest, option: &RunnerEnv) -> Result<RunnerResponse>
         .cwd(&current_dir)
         .write(&mut command);
     command.arg(SH_CMD).arg("-c").arg(run_cmd);
-    log::debug!("Command: {:?}", command);
     let mut child = command
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
@@ -100,7 +97,7 @@ pub fn run(request: RunnerRequest, option: &RunnerEnv) -> Result<RunnerResponse>
 
     let output = child.wait_with_output()?;
     let (memory, time) = GTime::read(&current_dir)?;
-    log::debug!("Memory: {:?}, Time: {:?}", memory, time);
+    log::debug!("Run Memory: {:?}, Time: {:?}", memory, time);
 
     if time > request.ms_time_limit {
         return Ok(RunnerResponse {

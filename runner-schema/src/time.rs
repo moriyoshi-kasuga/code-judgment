@@ -1,8 +1,16 @@
 #[derive(
-    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Serialize, serde::Deserialize,
+    Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Serialize, serde::Deserialize,
 )]
 #[repr(transparent)]
 pub struct MsTime(u64);
+
+impl core::fmt::Debug for MsTime {
+    fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
+        f.debug_tuple("MsTime")
+            .field(&format!("{:.3}", self.as_seconds()))
+            .finish()
+    }
+}
 
 impl MsTime {
     pub const fn new(seconds: u64, ms: u64) -> Self {
