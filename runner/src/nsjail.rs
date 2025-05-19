@@ -83,7 +83,10 @@ impl<'a> NsJailBuilder<'a> {
 
         if let Some(cwd) = self.cwd {
             command.arg("--cwd").arg(cwd);
+            command.current_dir(cwd);
         }
+
+        command.arg("--log").arg("log.txt");
 
         command
             .arg("--")
