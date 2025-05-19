@@ -1,14 +1,11 @@
 use more_convert::VariantName;
 use nsjail::NsJailBuilder;
-use std::{io::Write, process::Stdio, sync::LazyLock};
+use std::{io::Write, process::Stdio};
 use time::GTime;
 
 use env::{RUNNER_PATH, RUNNING_PATH, SH_CMD};
-use envman::EnvMan;
 use runner_schema::{
-    memory::Memory,
     state::RunnerState,
-    time::MsTime,
     web::{RunnerRequest, RunnerResponse},
 };
 
@@ -22,14 +19,7 @@ pub use env::RunnerEnv;
 pub mod error;
 pub use error::{Error, Result};
 
-static RUNNER_ENV: LazyLock<RunnerEnv> = LazyLock::new(|| {
-    #[allow(clippy::unwrap_used)]
-    let env = RunnerEnv::load().unwrap();
-    log::info!("Loaded env: {:#?}", env);
-    env
-});
-
-pub fn run(request: RunnerRequest) -> Result<RunnerResponse> {
+pub fn run(request: RunnerRequest, option: &RunnerEnv) -> Result<RunnerResponse> {
     log::debug!("Started runner with request: {:?}", request);
 
     let lang_runner = lang::lang_into_runner(request.lang);
@@ -56,8 +46,8 @@ pub fn run(request: RunnerRequest) -> Result<RunnerResponse> {
 
         let child = NsJailBuilder::new()
             .path(&bin_path)
-            .time_limit(MsTime::new_seconds(5))
-            .memory_limit(Memory::new_megabytes(128))
+            .time_limit(option.compile_time_limit_seconds)
+            .memory_limit(option.compile_memory_limit_megabytes)
             .cwd(&current_dir)
             .build()
             .arg(SH_CMD)
@@ -86,11 +76,10 @@ pub fn run(request: RunnerRequest) -> Result<RunnerResponse> {
     NsJailBuilder::new()
         .path(&bin_path)
         .time_limit(request.ms_time_limit.add_seconds(1))
-        .memory_limit(request.memory_limit)
+        .memory_limit(request.memory_limit.add_megabytes(1))
         .cwd(&current_dir)
         .write(&mut command);
     command.arg(SH_CMD).arg("-c").arg(run_cmd);
-    log::debug!("Command: {:?}", command);
     let mut child = command
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())

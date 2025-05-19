@@ -28,6 +28,18 @@ impl Memory {
     pub const fn as_megabytes(&self) -> u64 {
         self.0 / (1024 * 1024)
     }
+
+    pub const fn add_bytes(&self, memory: u64) -> Self {
+        Self(self.0 + memory)
+    }
+
+    pub const fn add_kilobytes(&self, memory: u64) -> Self {
+        Self(self.0 + memory * 1024)
+    }
+
+    pub const fn add_megabytes(&self, memory: u64) -> Self {
+        Self(self.0 + memory * 1024 * 1024)
+    }
 }
 
 #[derive(Debug, Clone, thiserror::Error, PartialEq, Eq)]
