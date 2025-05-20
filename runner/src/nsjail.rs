@@ -1,78 +1,91 @@
-use std::process::Command;
+use std::{path::Path, process::Command};
 
 use runner_schema::{memory::Memory, time::MsTime};
 
 use crate::env::{NIX_BIN, NIX_STORE_PATH, NSJAIL_CMD};
 
-pub struct NsJailBuilder<'a> {
-    time_limit: Option<MsTime>,
-    memory_limit: Option<Memory>,
-    path: Option<&'a str>,
-    cwd: Option<&'a str>,
-    tmpfsmount: Option<&'a str>,
-    writable: bool,
+pub struct NsJailBuilder {
+    command: Command,
 }
 
-impl Default for NsJailBuilder<'_> {
+impl Default for NsJailBuilder {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl<'a> NsJailBuilder<'a> {
+impl NsJailBuilder {
     pub fn new() -> Self {
-        NsJailBuilder {
-            time_limit: None,
-            memory_limit: None,
-            path: None,
-            cwd: None,
-            tmpfsmount: None,
-            writable: false,
-        }
+        let mut command = Command::new(NSJAIL_CMD);
+        Self::write_args(&mut command);
+        NsJailBuilder { command }
+    }
+
+    pub fn new_with(mut command: Command) -> Self {
+        command.arg(NSJAIL_CMD);
+        Self::write_args(&mut command);
+        NsJailBuilder { command }
     }
 
     pub fn time_limit(&mut self, time_limit: MsTime) -> &mut Self {
-        self.time_limit = Some(time_limit);
+        self.command
+            .arg("--time_limit")
+            .arg(time_limit.as_seconds_ceil().to_string());
+
         self
     }
 
     pub fn memory_limit(&mut self, memory_limit: Memory) -> &mut Self {
-        self.memory_limit = Some(memory_limit);
+        self.command
+            .arg("--cgroup_mem_max")
+            .arg(memory_limit.as_bytes().to_string());
+
         self
     }
 
-    pub fn path(&mut self, path: &'a str) -> &mut Self {
-        self.path = Some(path);
+    pub fn env(&mut self, key: &str, value: &str) -> &mut Self {
+        self.command.arg("--env").arg(format!("{}={}", key, value));
+
         self
     }
 
-    pub fn cwd(&mut self, cwd: &'a str) -> &mut Self {
-        self.cwd = Some(cwd);
+    pub fn cwd(&mut self, cwd: &Path) -> &mut Self {
+        self.command.arg("--chroot").arg(cwd);
+        self.command.current_dir(cwd);
+
         self
     }
 
-    pub fn tmpfsmount(&mut self, tmpfsmount: &'a str) -> &mut Self {
-        self.tmpfsmount = Some(tmpfsmount);
+    pub fn tmpfsmount(&mut self, tmpfsmount: &str) -> &mut Self {
+        self.command.arg("--tmpfsmount").arg(tmpfsmount);
+        self.command
+            .arg("--env")
+            .arg(format!("TMPDIR={}", tmpfsmount));
+
+        self
+    }
+
+    pub fn mount_read_only(&mut self, path: &str) -> &mut Self {
+        self.command.arg("-R").arg(path);
+
         self
     }
 
     pub fn writable(&mut self) -> &mut Self {
-        self.writable = true;
+        self.command.arg("--rw");
+
         self
     }
 
-    pub fn build(&self) -> Command {
-        let mut command = Command::new(NSJAIL_CMD);
-        self.write_args(&mut command);
+    pub fn build(self) -> Command {
+        let mut command = self.command;
+
+        command.arg("--");
+
         command
     }
 
-    pub fn write(&self, command: &mut Command) {
-        command.arg(NSJAIL_CMD);
-        self.write_args(command);
-    }
-
-    fn write_args(&self, command: &mut Command) {
+    fn write_args(command: &mut Command) {
         command.arg("-Mo");
         command.arg("--user").arg("99999");
         command.arg("--group").arg("99999");
@@ -87,47 +100,12 @@ impl<'a> NsJailBuilder<'a> {
             .arg("--disable_clone_newuts")
             .arg("--disable_clone_newcgroup");
 
-        if let Some(time_limit) = self.time_limit {
-            command
-                .arg("--time_limit")
-                .arg(time_limit.as_seconds_ceil().to_string());
-        }
-
-        if let Some(memory_limit) = self.memory_limit {
-            command
-                .arg("--cgroup_mem_max")
-                .arg(memory_limit.as_bytes().to_string());
-            command
-                .arg("--rlimit_as")
-                .arg((memory_limit.as_megabytes() + 5).to_string());
-        }
-
-        if let Some(path) = self.path {
-            command.arg("--env").arg(format!("PATH={}", path));
-            command.arg("-R").arg(path);
-        }
-
-        if let Some(cwd) = self.cwd {
-            command.arg("--chroot").arg(cwd);
-            command.current_dir(cwd);
-        } else {
-            command.arg("--chroot").arg("/");
-        }
-
-        if let Some(tmpfsmount) = self.tmpfsmount {
-            command.arg("--tmpfsmount").arg(tmpfsmount);
-            command.arg("--env").arg(format!("TMPDIR={}", tmpfsmount));
-        }
-
-        if self.writable {
-            command.arg("--rw");
-        }
+        // virtual memory by 4096MB
+        command.arg("--rlimit_as").arg("4096");
 
         command.arg("-R").arg(NIX_STORE_PATH);
         command.arg("-R").arg(NIX_BIN);
 
         command.arg("--log").arg("nsjail.txt");
-
-        command.arg("--");
     }
 }
