@@ -1,3 +1,4 @@
+use env::{RUNNING_PATH, RunnerOption, SH_CMD};
 use lang::{LangExt, runner::RunCommand};
 use nsjail::NsJailBuilder;
 use std::{
@@ -7,7 +8,6 @@ use std::{
 };
 use time::GTime;
 
-use env::{RUNNING_PATH, SH_CMD};
 use runner_schema::{
     state::RunnerState,
     web::{RunnerRequest, RunnerResponse},
@@ -17,13 +17,12 @@ pub mod lang;
 pub mod nsjail;
 pub mod time;
 
-mod env;
-pub use env::RunnerEnv;
+pub mod env;
 
 pub mod error;
 pub use error::{Error, Result};
 
-pub fn run(request: RunnerRequest, option: &RunnerEnv) -> Result<RunnerResponse> {
+pub fn run(request: RunnerRequest, option: &RunnerOption) -> Result<RunnerResponse> {
     let uid = ulid::Ulid::new();
     log::debug!("Started runner {}: {:#?}", uid, request);
 
@@ -50,6 +49,8 @@ pub fn run(request: RunnerRequest, option: &RunnerEnv) -> Result<RunnerResponse>
         builder
             .time_limit(option.compile_time_limit_seconds)
             .memory_limit(option.compile_memory_limit_megabytes)
+            .proc_writable(true)
+            .rlimit_fsize(0)
             .cwd(&current_dir)
             .env("PATH", &bin_path)
             .mount_read_only(&lang_runner_path)

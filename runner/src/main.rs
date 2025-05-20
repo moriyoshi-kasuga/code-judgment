@@ -1,5 +1,8 @@
+use std::sync::Arc;
+
 use axum::{Json, Router, extract::State, routing::post};
 use envman::EnvMan;
+use runner::env::RunnerOption;
 use runner_schema::web::{RunnerRequest, RunnerResponse};
 
 #[tokio::main]
@@ -9,11 +12,11 @@ async fn main() {
 
     log::info!("Starting runner...");
 
-    let env = runner::RunnerEnv::load().expect("Failed to load environment variables");
+    let env = RunnerOption::load().expect("Failed to load environment variables");
 
     let app = Router::new()
         .route("/run", post(router_run))
-        .with_state(env);
+        .with_state(Arc::new(env));
 
     // run our app with hyper, listening globally on port 3000
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
@@ -24,7 +27,7 @@ async fn main() {
 }
 
 async fn router_run(
-    State(option): State<runner::RunnerEnv>,
+    State(option): State<Arc<RunnerOption>>,
     Json(payload): Json<RunnerRequest>,
 ) -> Json<RunnerResponse> {
     runner::run(payload, &option)

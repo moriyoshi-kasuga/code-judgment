@@ -6,6 +6,7 @@ use crate::env::{NIX_BIN, NIX_STORE_PATH, NSJAIL_CMD};
 
 pub struct NsJailBuilder {
     command: Command,
+    proc_writable: Option<bool>,
 }
 
 impl Default for NsJailBuilder {
@@ -15,16 +16,23 @@ impl Default for NsJailBuilder {
 }
 
 impl NsJailBuilder {
+    fn inner(command: Command) -> Self {
+        NsJailBuilder {
+            command,
+            proc_writable: None,
+        }
+    }
+
     pub fn new() -> Self {
         let mut command = Command::new(NSJAIL_CMD);
         Self::write_args(&mut command);
-        NsJailBuilder { command }
+        NsJailBuilder::inner(command)
     }
 
     pub fn new_with(mut command: Command) -> Self {
         command.arg(NSJAIL_CMD);
         Self::write_args(&mut command);
-        NsJailBuilder { command }
+        NsJailBuilder::inner(command)
     }
 
     pub fn time_limit(&mut self, time_limit: MsTime) -> &mut Self {
@@ -52,6 +60,7 @@ impl NsJailBuilder {
     pub fn cwd(&mut self, cwd: &Path) -> &mut Self {
         self.command.arg("--chroot").arg(cwd);
         self.command.current_dir(cwd);
+        self.env("HOME", "/");
 
         self
     }
@@ -77,8 +86,32 @@ impl NsJailBuilder {
         self
     }
 
+    pub fn rlimit_fsize(&mut self, rlimit_fsize: u64) -> &mut Self {
+        self.command
+            .arg("--rlimit_fsize")
+            .arg(rlimit_fsize.to_string());
+
+        self
+    }
+
+    pub fn proc_writable(&mut self, is_writable: bool) -> &mut Self {
+        self.proc_writable = Some(is_writable);
+
+        self
+    }
+
     pub fn build(self) -> Command {
         let mut command = self.command;
+
+        match self.proc_writable {
+            Some(true) => {
+                command.arg("--proc_rw");
+            }
+            Some(false) => {}
+            None => {
+                command.arg("--disable_proc");
+            }
+        };
 
         command.arg("--");
 
@@ -91,9 +124,9 @@ impl NsJailBuilder {
         command.arg("--group").arg("99999");
         command.arg("--max_cpus").arg("1");
         command.arg("--detect_cgroupv2");
+        command.arg("--bindmount_ro").arg("/dev/null");
 
         command
-            .arg("--disable_proc")
             .arg("--disable_clone_newnet")
             .arg("--disable_clone_newuser")
             .arg("--disable_clone_newipc")

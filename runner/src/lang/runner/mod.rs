@@ -1,3 +1,5 @@
+use std::process::Command;
+
 use runner_schema::Language;
 
 use super::LangExt;
@@ -64,6 +66,7 @@ impl LangRunner {
     }
 }
 
+#[allow(clippy::unwrap_used, clippy::expect_used)]
 pub(super) fn lang_into_runner(lang: Language) -> LangRunner {
     match lang {
         Language::Rust1_82 => LangRunner::WithCompile {
@@ -72,14 +75,26 @@ pub(super) fn lang_into_runner(lang: Language) -> LangRunner {
             run_cmd: "./main",
             option: None,
         },
-        Language::Go1_23 => LangRunner::WithCompile {
-            file_name: "main.go",
-            compile_cmd: "go build -o main main.go",
-            run_cmd: "./main",
-            option: Some(LangRunnerOption {
-                compile_env: vec![("GOROOT", lang.bin_path())],
-            }),
-        },
+        Language::Go1_23 => {
+            let goroot = Command::new(format!("{}/go", lang.bin_path()))
+                .arg("env")
+                .arg("GOROOT")
+                .output()
+                .expect("failed to get GOROOT")
+                .stdout;
+
+            let goroot = String::from_utf8_lossy(&goroot).to_string();
+            let goroot = goroot.trim().to_string();
+
+            LangRunner::WithCompile {
+                file_name: "main.go",
+                compile_cmd: "go build -ldflags='-s -w' -trimpath -o main main.go",
+                run_cmd: "./main",
+                option: Some(LangRunnerOption {
+                    compile_env: vec![("GOROOT", goroot)],
+                }),
+            }
+        }
         Language::Python3_13 => LangRunner::WithoutCompile {
             file_name: "main.py",
             run_cmd: "python main.py",

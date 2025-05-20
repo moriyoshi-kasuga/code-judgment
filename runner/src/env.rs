@@ -1,7 +1,7 @@
 use runner_schema::{memory::Memory, time::MsTime};
 
-#[derive(Debug, Clone, envman::EnvMan)]
-pub struct RunnerEnv {
+#[derive(Debug, envman::EnvMan)]
+pub struct RunnerOption {
     #[envman(parser = compile_time_limit_seconds)]
     pub compile_time_limit_seconds: MsTime,
     #[envman(parser = compile_memory_limit_megabytes)]
