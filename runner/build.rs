@@ -26,11 +26,16 @@ fn main() {
 
     let build = builds.join(" && \\ \n  ");
 
+    let mkdirs = format!(
+        "mkdir -p {RUNNING_PATH} && \
+  mkdir -p {RUNNER_PATH} && \
+  chown -R 99999:99999 {RUNNING_PATH}"
+    );
+
     let text = format!(
         "# This file is auto-generated. Do not edit it directly.
-RUN {}
+RUN {mkdirs} && \\\n  {build}
 ",
-        build
     );
 
     if let Ok(read_text) = std::fs::read("Dockerfile.build") {
