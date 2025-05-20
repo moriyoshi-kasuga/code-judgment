@@ -1,14 +1,22 @@
-use axum::{Json, Router, routing::post};
+use std::sync::Arc;
+
+use axum::{Json, Router, extract::State, routing::post};
+use envman::EnvMan;
+use runner::env::RunnerOption;
 use runner_schema::web::{RunnerRequest, RunnerResponse};
 
 #[tokio::main]
-#[allow(clippy::unwrap_used)]
+#[allow(clippy::unwrap_used, clippy::expect_used)]
 async fn main() {
     env_logger::init();
 
     log::info!("Starting runner...");
 
-    let app = Router::new().route("/run", post(router_run));
+    let env = RunnerOption::load().expect("Failed to load environment variables");
+
+    let app = Router::new()
+        .route("/run", post(router_run))
+        .with_state(Arc::new(env));
 
     // run our app with hyper, listening globally on port 3000
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
@@ -18,13 +26,18 @@ async fn main() {
         .unwrap();
 }
 
-async fn router_run(Json(payload): Json<RunnerRequest>) -> Json<RunnerResponse> {
-    runner::run(payload).map(Json).unwrap_or_else(|err| {
-        log::error!("Internal Error: {}", err);
-        Json(RunnerResponse {
-            state: runner_schema::state::RunnerState::InternalError,
+async fn router_run(
+    State(option): State<Arc<RunnerOption>>,
+    Json(payload): Json<RunnerRequest>,
+) -> Json<RunnerResponse> {
+    runner::run(payload, &option)
+        .map(Json)
+        .unwrap_or_else(|err| {
+            log::error!("Internal Error: {}", err);
+            Json(RunnerResponse {
+                state: runner_schema::state::RunnerState::InternalError,
+            })
         })
-    })
 }
 
 #[allow(clippy::expect_used)]

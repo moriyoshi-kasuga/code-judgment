@@ -1,4 +1,5 @@
 # This file is auto-generated. Do not edit it directly.
-RUN nix-build /default.nix -A rust182 --out-link /runner/rust182 && \ 
+RUN mkdir -p /running && mkdir -p /runner && chown -R 99999:99999 /running && \
+  nix-build /default.nix -A rust182 --out-link /runner/rust182 && \ 
   nix-build /default.nix -A go123 --out-link /runner/go123 && \ 
   nix-build /default.nix -A python313 --out-link /runner/python313

@@ -12,5 +12,6 @@ services:
     cgroup: "host"
     volumes:
       - /sys/fs/cgroup:/sys/fs/cgroup:rw
+    # for testing
     ports:
       - 3000:3000

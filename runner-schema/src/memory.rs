@@ -1,8 +1,14 @@
 use std::{fmt::Display, str::FromStr};
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(transparent)]
 pub struct Memory(u64);
+
+impl core::fmt::Debug for Memory {
+    fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
+        f.debug_tuple("Memory").field(&self.to_string()).finish()
+    }
+}
 
 impl Memory {
     pub const fn new_bytes(memory: u64) -> Self {
@@ -27,6 +33,18 @@ impl Memory {
 
     pub const fn as_megabytes(&self) -> u64 {
         self.0 / (1024 * 1024)
+    }
+
+    pub const fn add_bytes(&self, memory: u64) -> Self {
+        Self(self.0 + memory)
+    }
+
+    pub const fn add_kilobytes(&self, memory: u64) -> Self {
+        Self(self.0 + memory * 1024)
+    }
+
+    pub const fn add_megabytes(&self, memory: u64) -> Self {
+        Self(self.0 + memory * 1024 * 1024)
     }
 }
 
