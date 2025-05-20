@@ -1,4 +1,4 @@
-use std::{path::Path, process::Command};
+use std::{ffi::OsStr, path::Path, process::Command};
 
 use runner_schema::{memory::Memory, time::MsTime};
 
@@ -65,8 +65,12 @@ impl NsJailBuilder {
         self
     }
 
-    pub fn tmpfsmount(&mut self, tmpfsmount: &str) -> &mut Self {
-        self.command.arg("--tmpfsmount").arg(tmpfsmount);
+    pub fn tmpfsmount(&mut self, tmpfsmount: &str, memory: Memory) -> &mut Self {
+        self.command.arg("-m").arg(format!(
+            "none:{tmpfsmount}:tmpfs:size={}",
+            memory.as_bytes()
+        ));
+
         self.command
             .arg("--env")
             .arg(format!("TMPDIR={}", tmpfsmount));
@@ -86,10 +90,8 @@ impl NsJailBuilder {
         self
     }
 
-    pub fn rlimit_fsize(&mut self, rlimit_fsize: u64) -> &mut Self {
-        self.command
-            .arg("--rlimit_fsize")
-            .arg(rlimit_fsize.to_string());
+    pub fn arg(&mut self, arg: impl AsRef<OsStr>) -> &mut Self {
+        self.command.arg(arg);
 
         self
     }
@@ -122,7 +124,6 @@ impl NsJailBuilder {
         command.arg("-Mo");
         command.arg("--user").arg("99999");
         command.arg("--group").arg("99999");
-        command.arg("--max_cpus").arg("1");
         command.arg("--detect_cgroupv2");
         command.arg("--bindmount_ro").arg("/dev/null");
 
@@ -133,8 +134,8 @@ impl NsJailBuilder {
             .arg("--disable_clone_newuts")
             .arg("--disable_clone_newcgroup");
 
-        // virtual memory by 4096MB
-        command.arg("--rlimit_as").arg("4096");
+        // virtual memory by MB
+        command.arg("--rlimit_as").arg("9192");
 
         command.arg("-R").arg(NIX_STORE_PATH);
         command.arg("-R").arg(NIX_BIN);

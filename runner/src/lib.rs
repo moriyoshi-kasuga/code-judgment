@@ -9,6 +9,7 @@ use std::{
 use time::GTime;
 
 use runner_schema::{
+    memory::Memory,
     state::RunnerState,
     web::{RunnerRequest, RunnerResponse},
 };
@@ -50,11 +51,14 @@ pub fn run(request: RunnerRequest, option: &RunnerOption) -> Result<RunnerRespon
             .time_limit(option.compile_time_limit_seconds)
             .memory_limit(option.compile_memory_limit_megabytes)
             .proc_writable(true)
-            .rlimit_fsize(0)
+            .arg("--rlimit_fsize")
+            .arg("100")
+            .arg("--rlimit_nofile")
+            .arg("128")
             .cwd(&current_dir)
             .env("PATH", &bin_path)
             .mount_read_only(&lang_runner_path)
-            .tmpfsmount("/tmp")
+            .tmpfsmount("/tmp", Memory::new_megabytes(512))
             .writable();
 
         if let Some(option) = lang_runner.option() {
@@ -76,6 +80,7 @@ pub fn run(request: RunnerRequest, option: &RunnerOption) -> Result<RunnerRespon
         let output = child.wait_with_output()?;
         let (memory, time) = GTime::read(&current_dir)?;
         log::debug!("Compile Memory: {:?}, Time: {:?}", memory, time);
+        // TODO: compile time limit and memory limit check
         if !output.status.success() {
             return Ok(RunnerResponse {
                 state: RunnerState::CompileError {
