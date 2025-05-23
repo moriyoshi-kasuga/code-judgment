@@ -7,17 +7,23 @@ pub enum LangRunner {
         file_name: &'static str,
         compile_cmd: &'static str,
         run_cmd: &'static str,
-        option: Option<fn(&mut NsJailBuilder)>,
+        option: LangRunnerOption,
     },
     WithoutCompile {
         file_name: &'static str,
         run_cmd: &'static str,
-        option: Option<fn(&mut NsJailBuilder)>,
+        option: LangRunnerOption,
     },
     Inline {
         run_cmd: fn(&str) -> String,
-        option: Option<fn(&mut NsJailBuilder)>,
+        option: LangRunnerOption,
     },
+}
+
+#[derive(Default)]
+pub struct LangRunnerOption {
+    pub more_compile: Option<fn(&mut NsJailBuilder)>,
+    pub more_run: Option<fn(&mut NsJailBuilder)>,
 }
 
 pub enum RunCommand {
@@ -50,11 +56,11 @@ impl LangRunner {
         }
     }
 
-    pub fn option(&self) -> Option<fn(&mut NsJailBuilder)> {
+    pub fn option(&self) -> &LangRunnerOption {
         match self {
-            LangRunner::WithCompile { option, .. } => *option,
-            LangRunner::WithoutCompile { option, .. } => *option,
-            LangRunner::Inline { option, .. } => *option,
+            LangRunner::WithCompile { option, .. } => option,
+            LangRunner::WithoutCompile { option, .. } => option,
+            LangRunner::Inline { option, .. } => option,
         }
     }
 }
@@ -66,22 +72,25 @@ pub(super) fn lang_into_runner(lang: &Language) -> LangRunner {
             file_name: "main.rs",
             compile_cmd: "rustc -O main.rs -o main",
             run_cmd: "./main",
-            option: None,
+            option: Default::default(),
         },
         Language::Go1_23 => LangRunner::WithCompile {
             file_name: "main.go",
             compile_cmd: "go build -o main main.go",
             run_cmd: "./main",
-            option: Some(|builder| {
-                builder
-                    .env("HOME", "/")
-                    .mount_rw_dest("/go-cache", "/.cache");
-            }),
+            option: LangRunnerOption {
+                more_compile: Some(|builder| {
+                    builder
+                        .env("HOME", "/")
+                        .mount_rw_dest("/go-cache", "/.cache");
+                }),
+                ..Default::default()
+            },
         },
         Language::Python3_13 => LangRunner::WithoutCompile {
             file_name: "main.py",
             run_cmd: "python main.py",
-            option: None,
+            option: Default::default(),
         },
     }
 }

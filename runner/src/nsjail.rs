@@ -2,7 +2,7 @@ use std::{ffi::OsStr, path::Path, process::Command};
 
 use runner_schema::{memory::Memory, time::MsTime};
 
-use crate::env::{NIX_BIN, NIX_STORE_PATH, NSJAIL_CMD, PERMISSION_ID, PERMISSION_ID_STR};
+use crate::env::{NIX_BIN, NIX_STORE_PATH, NSJAIL_CMD, PERMISSION_ID_STR};
 
 pub struct NsJailBuilder {
     command: Command,

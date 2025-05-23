@@ -65,8 +65,8 @@ pub fn run(
             .tmpfsmount("/tmp", Memory::new_megabytes(512))
             .writable();
 
-        if let Some(option) = lang_runner.option() {
-            option(&mut builder);
+        if let Some(f) = lang_runner.option().more_compile {
+            f(&mut builder)
         }
 
         let mut command = builder.build();
@@ -104,6 +104,11 @@ pub fn run(
         .time_limit(request.ms_time_limit.add_seconds(1))
         .memory_limit(request.memory_limit.add_megabytes(1))
         .cwd(&current_dir);
+
+    if let Some(f) = lang_runner.option().more_run {
+        f(&mut builder)
+    }
+
     let mut command = builder.build();
     command.arg(SH_CMD).arg("-c").arg(run_cmd);
     log::debug!("Run command: {:?}", command);
