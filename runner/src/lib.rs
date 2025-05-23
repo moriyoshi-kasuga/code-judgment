@@ -1,4 +1,4 @@
-use env::{RUNNING_PATH, RunnerOption, SH_CMD};
+use env::{PERMISSION_ID, RUNNING_PATH, RunnerOption, SH_CMD};
 use lang::{LangExt, Runners, runner::RunCommand};
 use nsjail::NsJailBuilder;
 use std::{
@@ -166,6 +166,6 @@ pub fn run(
 fn create_dir_by_uid(uid: ulid::Ulid) -> Result<PathBuf> {
     let current_dir = Path::new(RUNNING_PATH).join(uid.to_string());
     std::fs::create_dir(&current_dir)?;
-    std::os::unix::fs::chown(&current_dir, Some(99999), Some(99999))?;
+    std::os::unix::fs::chown(&current_dir, Some(PERMISSION_ID), Some(PERMISSION_ID))?;
     Ok(current_dir)
 }

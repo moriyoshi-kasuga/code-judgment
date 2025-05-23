@@ -2,7 +2,7 @@ use std::{ffi::OsStr, path::Path, process::Command};
 
 use runner_schema::{memory::Memory, time::MsTime};
 
-use crate::env::{NIX_BIN, NIX_STORE_PATH, NSJAIL_CMD};
+use crate::env::{NIX_BIN, NIX_STORE_PATH, NSJAIL_CMD, PERMISSION_ID, PERMISSION_ID_STR};
 
 pub struct NsJailBuilder {
     command: Command,
@@ -139,8 +139,8 @@ impl NsJailBuilder {
 
     fn write_args(command: &mut Command) {
         command.arg("-Mo");
-        command.arg("--user").arg("99999");
-        command.arg("--group").arg("99999");
+        command.arg("--user").arg(PERMISSION_ID_STR);
+        command.arg("--group").arg(PERMISSION_ID_STR);
         command.arg("--detect_cgroupv2");
         command.arg("--bindmount_ro").arg("/dev/null");
 
