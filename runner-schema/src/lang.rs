@@ -19,3 +19,7 @@ pub enum Language {
     Go1_23 = 2,
     Python3_13 = 3,
 }
+
+impl enum_table::Enumable for Language {
+    const VARIANTS: &'static [Self] = Self::VARIANTS;
+}

@@ -60,7 +60,7 @@ impl LangRunner {
 }
 
 #[allow(clippy::unwrap_used, clippy::expect_used)]
-pub(super) fn lang_into_runner(lang: Language) -> LangRunner {
+pub(super) fn lang_into_runner(lang: &Language) -> LangRunner {
     match lang {
         Language::Rust1_82 => LangRunner::WithCompile {
             file_name: "main.rs",

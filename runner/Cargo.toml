@@ -17,6 +17,7 @@ more-convert.workspace = true
 tokio.workspace = true
 axum.workspace = true
 env_logger.workspace = true
+enum-table.workspace = true
 
 [build-dependencies]
 runner-schema.workspace = true

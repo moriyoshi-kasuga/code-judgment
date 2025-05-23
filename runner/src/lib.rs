@@ -1,5 +1,5 @@
 use env::{RUNNING_PATH, RunnerOption, SH_CMD};
-use lang::{LangExt, runner::RunCommand};
+use lang::{LangExt, Runners, runner::RunCommand};
 use nsjail::NsJailBuilder;
 use std::{
     io::Write,
@@ -23,11 +23,15 @@ pub mod env;
 pub mod error;
 pub use error::{Error, Result};
 
-pub fn run(request: RunnerRequest, option: &RunnerOption) -> Result<RunnerResponse> {
+pub fn run(
+    runners: &Runners,
+    request: RunnerRequest,
+    option: &RunnerOption,
+) -> Result<RunnerResponse> {
     let uid = ulid::Ulid::new();
     log::debug!("Started runner {}: {:#?}", uid, request);
 
-    let lang_runner = request.lang.into_runner();
+    let lang_runner = runners.get(&request.lang);
     let uid = ulid::Ulid::new();
 
     let current_dir = create_dir_by_uid(uid)?;
