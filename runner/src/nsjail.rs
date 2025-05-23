@@ -60,7 +60,6 @@ impl NsJailBuilder {
     pub fn cwd(&mut self, cwd: &Path) -> &mut Self {
         self.command.arg("--chroot").arg(cwd);
         self.command.current_dir(cwd);
-        self.env("HOME", "/");
 
         self
     }
@@ -78,8 +77,26 @@ impl NsJailBuilder {
         self
     }
 
-    pub fn mount_read_only(&mut self, path: &str) -> &mut Self {
-        self.command.arg("-R").arg(path);
+    /// mount read only
+    pub fn mount_ro(&mut self, path: &str) -> &mut Self {
+        self.mount_ro_dest(path, path)
+    }
+
+    /// mount read only
+    pub fn mount_ro_dest(&mut self, src: &str, dest: &str) -> &mut Self {
+        self.command.arg("-R").arg(format!("{src}:{dest}"));
+
+        self
+    }
+
+    // mount read write
+    pub fn mount_rw(&mut self, path: &str) -> &mut Self {
+        self.mount_rw_dest(path, path)
+    }
+
+    // mount read write
+    pub fn mount_rw_dest(&mut self, src: &str, dest: &str) -> &mut Self {
+        self.command.arg("-B").arg(format!("{src}:{dest}"));
 
         self
     }

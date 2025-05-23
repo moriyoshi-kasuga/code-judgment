@@ -1,26 +1,23 @@
 use runner_schema::Language;
 
+use crate::nsjail::NsJailBuilder;
+
 pub enum LangRunner {
     WithCompile {
         file_name: &'static str,
         compile_cmd: &'static str,
         run_cmd: &'static str,
-        option: Option<LangRunnerOption>,
+        option: Option<fn(&mut NsJailBuilder)>,
     },
     WithoutCompile {
         file_name: &'static str,
         run_cmd: &'static str,
-        option: Option<LangRunnerOption>,
+        option: Option<fn(&mut NsJailBuilder)>,
     },
     Inline {
         run_cmd: fn(&str) -> String,
-        option: Option<LangRunnerOption>,
+        option: Option<fn(&mut NsJailBuilder)>,
     },
-}
-
-#[derive(Debug, Clone)]
-pub struct LangRunnerOption {
-    pub compile_env: Vec<(&'static str, String)>,
 }
 
 pub enum RunCommand {
@@ -53,11 +50,11 @@ impl LangRunner {
         }
     }
 
-    pub fn option(&self) -> Option<&LangRunnerOption> {
+    pub fn option(&self) -> Option<fn(&mut NsJailBuilder)> {
         match self {
-            LangRunner::WithCompile { option, .. } => option.as_ref(),
-            LangRunner::WithoutCompile { option, .. } => option.as_ref(),
-            LangRunner::Inline { option, .. } => option.as_ref(),
+            LangRunner::WithCompile { option, .. } => *option,
+            LangRunner::WithoutCompile { option, .. } => *option,
+            LangRunner::Inline { option, .. } => *option,
         }
     }
 }
@@ -75,7 +72,11 @@ pub(super) fn lang_into_runner(lang: Language) -> LangRunner {
             file_name: "main.go",
             compile_cmd: "go build -o main main.go",
             run_cmd: "./main",
-            option: None,
+            option: Some(|builder| {
+                builder
+                    .env("HOME", "/")
+                    .mount_rw_dest("/go-cache", "/.cache");
+            }),
         },
         Language::Python3_13 => LangRunner::WithoutCompile {
             file_name: "main.py",

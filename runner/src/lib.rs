@@ -57,14 +57,12 @@ pub fn run(request: RunnerRequest, option: &RunnerOption) -> Result<RunnerRespon
             .arg("128")
             .cwd(&current_dir)
             .env("PATH", &bin_path)
-            .mount_read_only(&lang_runner_path)
+            .mount_ro(&lang_runner_path)
             .tmpfsmount("/tmp", Memory::new_megabytes(512))
             .writable();
 
         if let Some(option) = lang_runner.option() {
-            for (key, value) in option.compile_env.iter() {
-                builder.env(key, value);
-            }
+            option(&mut builder);
         }
 
         let mut command = builder.build();
@@ -98,7 +96,7 @@ pub fn run(request: RunnerRequest, option: &RunnerOption) -> Result<RunnerRespon
     let mut builder = NsJailBuilder::new_with(GTime::new_cmd());
     builder
         .env("PATH", &bin_path)
-        .mount_read_only(&lang_runner_path)
+        .mount_ro(&lang_runner_path)
         .time_limit(request.ms_time_limit.add_seconds(1))
         .memory_limit(request.memory_limit.add_megabytes(1))
         .cwd(&current_dir);

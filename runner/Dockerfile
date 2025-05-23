@@ -21,6 +21,8 @@ RUN nix-env --profile /global -iA nixpkgs.time nixpkgs.nsjail nixpkgs.bash
 
 INCLUDE runner/Dockerfile.build
 
+RUN mkdir /go-cache && chown -R 99999:99999 /go-cache
+
 COPY --from=builder /build/runner /server
 
 ENTRYPOINT [ "/server" ]
