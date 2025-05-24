@@ -1,14 +1,11 @@
-use std::sync::Arc;
-
 use axum::{Json, Router, extract::State, routing::post};
 use envman::EnvMan;
 use runner::env::RunnerOption;
 use runner_schema::web::{RunnerRequest, RunnerResponse};
 
-#[derive(Clone)]
 struct RunnerState {
-    pub option: Arc<RunnerOption>,
-    pub runners: Arc<runner::runner::Runners>,
+    pub option: RunnerOption,
+    pub runners: runner::runner::Runners,
 }
 
 #[tokio::main]
@@ -23,9 +20,13 @@ async fn main() {
     log::info!("Runner environment: {:#?}", env);
 
     let state = RunnerState {
-        option: Arc::new(env),
-        runners: Arc::new(runner::runner::Runners::new()),
+        option: env,
+        runners: runner::runner::Runners::new(),
     };
+
+    static STATE: std::sync::OnceLock<RunnerState> = std::sync::OnceLock::new();
+
+    let state: &'static RunnerState = STATE.get_or_init(|| state);
 
     let app = Router::new()
         .route("/run", post(router_run))
@@ -40,7 +41,7 @@ async fn main() {
 }
 
 async fn router_run(
-    State(state): State<RunnerState>,
+    State(state): State<&'static RunnerState>,
     Json(payload): Json<RunnerRequest>,
 ) -> Json<RunnerResponse> {
     runner::run(&state.runners, payload, &state.option)
