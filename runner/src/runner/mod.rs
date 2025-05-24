@@ -1,6 +1,29 @@
+#![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
+
 use runner_schema::Language;
 
 use crate::nsjail::NsJailBuilder;
+
+mod go;
+mod python;
+mod rust;
+
+pub struct Runners {
+    map: enum_table::EnumTable<Language, LangRunner, { Language::COUNT }>,
+}
+
+impl Runners {
+    #[allow(clippy::new_without_default)]
+    pub fn new() -> Self {
+        let map = enum_table::EnumTable::new_with_fn(lang_into_runner);
+
+        Self { map }
+    }
+
+    pub fn get(&self, lang: &Language) -> &LangRunner {
+        self.map.get(lang)
+    }
+}
 
 pub enum LangRunner {
     WithCompile {
@@ -65,32 +88,10 @@ impl LangRunner {
     }
 }
 
-#[allow(clippy::unwrap_used, clippy::expect_used)]
 pub(super) fn lang_into_runner(lang: &Language) -> LangRunner {
     match lang {
-        Language::Rust1_82 => LangRunner::WithCompile {
-            file_name: "main.rs",
-            compile_cmd: "rustc -O main.rs -o main",
-            run_cmd: "./main",
-            option: Default::default(),
-        },
-        Language::Go1_23 => LangRunner::WithCompile {
-            file_name: "main.go",
-            compile_cmd: "go build -o main main.go",
-            run_cmd: "./main",
-            option: LangRunnerOption {
-                more_compile: Some(|builder| {
-                    builder
-                        .env("HOME", "/")
-                        .mount_rw_dest("/go-cache", "/.cache");
-                }),
-                ..Default::default()
-            },
-        },
-        Language::Python3_13 => LangRunner::WithoutCompile {
-            file_name: "main.py",
-            run_cmd: "python main.py",
-            option: Default::default(),
-        },
+        Language::Rust1_82 => rust::rust(),
+        Language::Go1_23 => go::go(),
+        Language::Python3_13 => python::python(),
     }
 }

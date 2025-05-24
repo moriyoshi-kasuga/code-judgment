@@ -8,7 +8,7 @@ use runner_schema::web::{RunnerRequest, RunnerResponse};
 #[derive(Clone)]
 struct RunnerState {
     pub option: Arc<RunnerOption>,
-    pub runners: Arc<runner::lang::Runners>,
+    pub runners: Arc<runner::runner::Runners>,
 }
 
 #[tokio::main]
@@ -22,7 +22,7 @@ async fn main() {
 
     let state = RunnerState {
         option: Arc::new(env),
-        runners: Arc::new(runner::lang::Runners::new()),
+        runners: Arc::new(runner::runner::Runners::new()),
     };
 
     let app = Router::new()

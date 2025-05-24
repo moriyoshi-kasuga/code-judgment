@@ -205,9 +205,9 @@ dependencies = [
 
 [[package]]
 name = "enum-table"
-version = "0.2.2"
+version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "10b801351667b115a99fa4958beb3ec4430dcdb260b501ecd65e841f2bdc3487"
+checksum = "deef12b94395a4dab2aaed538679154c10314319978ae554ba6321a8a6a8ddfe"
 dependencies = [
  "enum-table-derive",
 ]
