@@ -105,6 +105,7 @@ pub fn run(
         .mount_ro(&lang_runner_path)
         .time_limit(request.ms_time_limit.add_seconds(1))
         .memory_limit(request.memory_limit.add_megabytes(1))
+        .log("nsjail.log")
         .cwd(&current_dir);
 
     if let Some(f) = lang_runner.option().more_run {

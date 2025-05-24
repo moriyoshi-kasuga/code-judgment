@@ -119,6 +119,12 @@ impl NsJailBuilder {
         self
     }
 
+    pub fn log(&mut self, log_path: &str) -> &mut Self {
+        self.command.arg("--log").arg(log_path);
+
+        self
+    }
+
     pub fn build(self) -> Command {
         let mut command = self.command;
 
@@ -156,7 +162,5 @@ impl NsJailBuilder {
 
         command.arg("-R").arg(NIX_STORE_PATH);
         command.arg("-R").arg(NIX_BIN);
-
-        command.arg("--log").arg("nsjail.txt");
     }
 }
