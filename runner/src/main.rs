@@ -20,6 +20,8 @@ async fn main() {
 
     let env = RunnerOption::load().expect("Failed to load environment variables");
 
+    log::info!("Runner environment: {:#?}", env);
+
     let state = RunnerState {
         option: Arc::new(env),
         runners: Arc::new(runner::runner::Runners::new()),
