@@ -1,26 +1,52 @@
+#![allow(clippy::expect_used, clippy::panic)]
+
 use runner_schema::Language;
+
+use crate::nsjail::NsJailBuilder;
+
+mod go;
+mod python;
+mod rust;
+
+pub struct Runners {
+    map: enum_table::EnumTable<Language, LangRunner, { Language::COUNT }>,
+}
+
+impl Runners {
+    #[allow(clippy::new_without_default)]
+    pub fn new() -> Self {
+        let map = enum_table::EnumTable::new_with_fn(lang_into_runner);
+
+        Self { map }
+    }
+
+    pub fn get(&self, lang: &Language) -> &LangRunner {
+        self.map.get(lang)
+    }
+}
 
 pub enum LangRunner {
     WithCompile {
         file_name: &'static str,
         compile_cmd: &'static str,
         run_cmd: &'static str,
-        option: Option<LangRunnerOption>,
+        option: LangRunnerOption,
     },
     WithoutCompile {
         file_name: &'static str,
         run_cmd: &'static str,
-        option: Option<LangRunnerOption>,
+        option: LangRunnerOption,
     },
     Inline {
         run_cmd: fn(&str) -> String,
-        option: Option<LangRunnerOption>,
+        option: LangRunnerOption,
     },
 }
 
-#[derive(Debug, Clone)]
+#[derive(Default)]
 pub struct LangRunnerOption {
-    pub compile_env: Vec<(&'static str, String)>,
+    pub more_compile: Option<fn(&mut NsJailBuilder)>,
+    pub more_run: Option<fn(&mut NsJailBuilder)>,
 }
 
 pub enum RunCommand {
@@ -53,34 +79,19 @@ impl LangRunner {
         }
     }
 
-    pub fn option(&self) -> Option<&LangRunnerOption> {
+    pub fn option(&self) -> &LangRunnerOption {
         match self {
-            LangRunner::WithCompile { option, .. } => option.as_ref(),
-            LangRunner::WithoutCompile { option, .. } => option.as_ref(),
-            LangRunner::Inline { option, .. } => option.as_ref(),
+            LangRunner::WithCompile { option, .. } => option,
+            LangRunner::WithoutCompile { option, .. } => option,
+            LangRunner::Inline { option, .. } => option,
         }
     }
 }
 
-#[allow(clippy::unwrap_used, clippy::expect_used)]
-pub(super) fn lang_into_runner(lang: Language) -> LangRunner {
+pub(super) fn lang_into_runner(lang: &Language) -> LangRunner {
     match lang {
-        Language::Rust1_82 => LangRunner::WithCompile {
-            file_name: "main.rs",
-            compile_cmd: "rustc -O main.rs -o main",
-            run_cmd: "./main",
-            option: None,
-        },
-        Language::Go1_23 => LangRunner::WithCompile {
-            file_name: "main.go",
-            compile_cmd: "go build -o main main.go",
-            run_cmd: "./main",
-            option: None,
-        },
-        Language::Python3_13 => LangRunner::WithoutCompile {
-            file_name: "main.py",
-            run_cmd: "python main.py",
-            option: None,
-        },
+        Language::Rust1_82 => rust::rust(),
+        Language::Go1_23 => go::go(),
+        Language::Python3_13 => python::python(),
     }
 }

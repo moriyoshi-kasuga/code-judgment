@@ -2,7 +2,7 @@ use std::{ffi::OsStr, path::Path, process::Command};
 
 use runner_schema::{memory::Memory, time::MsTime};
 
-use crate::env::{NIX_BIN, NIX_STORE_PATH, NSJAIL_CMD};
+use crate::env::{NIX_BIN, NIX_STORE_PATH, NSJAIL_CMD, PERMISSION_ID_STR};
 
 pub struct NsJailBuilder {
     command: Command,
@@ -60,7 +60,6 @@ impl NsJailBuilder {
     pub fn cwd(&mut self, cwd: &Path) -> &mut Self {
         self.command.arg("--chroot").arg(cwd);
         self.command.current_dir(cwd);
-        self.env("HOME", "/");
 
         self
     }
@@ -78,8 +77,26 @@ impl NsJailBuilder {
         self
     }
 
-    pub fn mount_read_only(&mut self, path: &str) -> &mut Self {
-        self.command.arg("-R").arg(path);
+    /// mount read only
+    pub fn mount_ro(&mut self, path: &str) -> &mut Self {
+        self.mount_ro_dest(path, path)
+    }
+
+    /// mount read only
+    pub fn mount_ro_dest(&mut self, src: &str, dest: &str) -> &mut Self {
+        self.command.arg("-R").arg(format!("{src}:{dest}"));
+
+        self
+    }
+
+    // mount read write
+    pub fn mount_rw(&mut self, path: &str) -> &mut Self {
+        self.mount_rw_dest(path, path)
+    }
+
+    // mount read write
+    pub fn mount_rw_dest(&mut self, src: &str, dest: &str) -> &mut Self {
+        self.command.arg("-B").arg(format!("{src}:{dest}"));
 
         self
     }
@@ -98,6 +115,12 @@ impl NsJailBuilder {
 
     pub fn proc_writable(&mut self, is_writable: bool) -> &mut Self {
         self.proc_writable = Some(is_writable);
+
+        self
+    }
+
+    pub fn log(&mut self, log_path: &str) -> &mut Self {
+        self.command.arg("--log").arg(log_path);
 
         self
     }
@@ -122,8 +145,8 @@ impl NsJailBuilder {
 
     fn write_args(command: &mut Command) {
         command.arg("-Mo");
-        command.arg("--user").arg("99999");
-        command.arg("--group").arg("99999");
+        command.arg("--user").arg(PERMISSION_ID_STR);
+        command.arg("--group").arg(PERMISSION_ID_STR);
         command.arg("--detect_cgroupv2");
         command.arg("--bindmount_ro").arg("/dev/null");
 
@@ -139,7 +162,5 @@ impl NsJailBuilder {
 
         command.arg("-R").arg(NIX_STORE_PATH);
         command.arg("-R").arg(NIX_BIN);
-
-        command.arg("--log").arg("nsjail.txt");
     }
 }

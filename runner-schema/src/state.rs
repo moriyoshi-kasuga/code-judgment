@@ -26,13 +26,3 @@ pub enum RunnerState {
     },
     InternalError,
 }
-
-impl RunnerState {
-    pub fn to_json(&self) -> serde_json::Result<String> {
-        serde_json::to_string(self)
-    }
-
-    pub fn from_json(json: &str) -> serde_json::Result<Self> {
-        serde_json::from_str(json)
-    }
-}

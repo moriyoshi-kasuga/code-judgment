@@ -23,3 +23,9 @@ pub const NIX_BIN: &str = env!("NIX_BIN");
 pub const SH_CMD: &str = concat!(env!("NIX_BIN"), "/sh");
 pub const NSJAIL_CMD: &str = concat!(env!("NIX_BIN"), "/nsjail");
 pub const TIME_CMD: &str = concat!(env!("NIX_BIN"), "/time");
+
+pub const PERMISSION_ID_STR: &str = env!("PERMISSION_ID_STR");
+pub const PERMISSION_ID: u32 = match u32::from_str_radix(PERMISSION_ID_STR, 10) {
+    Ok(id) => id,
+    Err(_) => panic!("Invalid permission ID"),
+};

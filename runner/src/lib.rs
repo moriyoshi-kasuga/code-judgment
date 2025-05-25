@@ -1,6 +1,7 @@
-use env::{RUNNING_PATH, RunnerOption, SH_CMD};
-use lang::{LangExt, runner::RunCommand};
+use env::{PERMISSION_ID, RUNNING_PATH, RunnerOption, SH_CMD};
+use lang::LangExt;
 use nsjail::NsJailBuilder;
+use runner::{RunCommand, Runners};
 use std::{
     io::Write,
     path::{Path, PathBuf},
@@ -16,6 +17,7 @@ use runner_schema::{
 
 pub mod lang;
 pub mod nsjail;
+pub mod runner;
 pub mod time;
 
 pub mod env;
@@ -23,11 +25,15 @@ pub mod env;
 pub mod error;
 pub use error::{Error, Result};
 
-pub fn run(request: RunnerRequest, option: &RunnerOption) -> Result<RunnerResponse> {
+pub fn run(
+    runners: &Runners,
+    request: RunnerRequest,
+    option: &RunnerOption,
+) -> Result<RunnerResponse> {
     let uid = ulid::Ulid::new();
     log::debug!("Started runner {}: {:#?}", uid, request);
 
-    let lang_runner = request.lang.into_runner();
+    let lang_runner = runners.get(&request.lang);
     let uid = ulid::Ulid::new();
 
     let current_dir = create_dir_by_uid(uid)?;
@@ -57,14 +63,12 @@ pub fn run(request: RunnerRequest, option: &RunnerOption) -> Result<RunnerRespon
             .arg("128")
             .cwd(&current_dir)
             .env("PATH", &bin_path)
-            .mount_read_only(&lang_runner_path)
+            .mount_ro(&lang_runner_path)
             .tmpfsmount("/tmp", Memory::new_megabytes(512))
             .writable();
 
-        if let Some(option) = lang_runner.option() {
-            for (key, value) in option.compile_env.iter() {
-                builder.env(key, value);
-            }
+        if let Some(f) = lang_runner.option().more_compile {
+            f(&mut builder)
         }
 
         let mut command = builder.build();
@@ -98,10 +102,16 @@ pub fn run(request: RunnerRequest, option: &RunnerOption) -> Result<RunnerRespon
     let mut builder = NsJailBuilder::new_with(GTime::new_cmd());
     builder
         .env("PATH", &bin_path)
-        .mount_read_only(&lang_runner_path)
+        .mount_ro(&lang_runner_path)
         .time_limit(request.ms_time_limit.add_seconds(1))
         .memory_limit(request.memory_limit.add_megabytes(1))
+        .log("nsjail.log")
         .cwd(&current_dir);
+
+    if let Some(f) = lang_runner.option().more_run {
+        f(&mut builder)
+    }
+
     let mut command = builder.build();
     command.arg(SH_CMD).arg("-c").arg(run_cmd);
     log::debug!("Run command: {:?}", command);
@@ -164,6 +174,6 @@ pub fn run(request: RunnerRequest, option: &RunnerOption) -> Result<RunnerRespon
 fn create_dir_by_uid(uid: ulid::Ulid) -> Result<PathBuf> {
     let current_dir = Path::new(RUNNING_PATH).join(uid.to_string());
     std::fs::create_dir(&current_dir)?;
-    std::os::unix::fs::chown(&current_dir, Some(99999), Some(99999))?;
+    std::os::unix::fs::chown(&current_dir, Some(PERMISSION_ID), Some(PERMISSION_ID))?;
     Ok(current_dir)
 }
