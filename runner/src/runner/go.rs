@@ -8,7 +8,7 @@ use crate::{
 
 use super::{LangRunner, LangRunnerOption};
 
-pub fn go() -> LangRunner {
+pub fn go() -> Result<LangRunner, Box<dyn std::error::Error>> {
     const GOCACHE: &str = "/go-cache";
     const GO: &str = r#"
 package main
@@ -18,13 +18,12 @@ func main() {
 }
 "#;
 
-    std::fs::create_dir_all(GOCACHE).expect("Failed to create GOCACHE directory");
-    std::os::unix::fs::chown(GOCACHE, Some(PERMISSION_ID), Some(PERMISSION_ID))
-        .expect("Failed to set ownership of GOCACHE directory");
+    std::fs::create_dir_all(GOCACHE)?;
+    std::os::unix::fs::chown(GOCACHE, Some(PERMISSION_ID), Some(PERMISSION_ID))?;
 
     let temp_dir = std::env::temp_dir();
     let go_main = temp_dir.join("go-cache-main.go");
-    std::fs::write(&go_main, GO).expect("Failed to write go cache file");
+    std::fs::write(&go_main, GO)?;
 
     let lang_runner_path = Language::Go1_23.runner_path();
     let bin_path = Language::Go1_23.bin_path();
@@ -50,18 +49,17 @@ func main() {
     let output = command
         .arg(SH_CMD)
         .arg("-c")
-        .arg("go build -o go-cache-main go-cache-main.go");
-
-    log::debug!("Compiling go cache file: {:?}", &output);
-    let output = output.output().expect("Failed to compile go cache file");
+        .arg("go build -o go-cache-main go-cache-main.go")
+        .output()?;
 
     if !output.status.success() {
-        log::error!("Failed to compile go cache file: {:#?}", &output);
-
-        panic!("Failed to compile go cache file");
+        return Err(Box::new(std::io::Error::other(format!(
+            "Failed to compile Go cache file: {}",
+            String::from_utf8_lossy(&output.stderr)
+        ))));
     }
 
-    LangRunner::WithCompile {
+    Ok(LangRunner::WithCompile {
         file_name: "main.go",
         compile_cmd: "go build -o main main.go",
         run_cmd: "./main",
@@ -71,5 +69,5 @@ func main() {
             }),
             ..Default::default()
         },
-    }
+    })
 }

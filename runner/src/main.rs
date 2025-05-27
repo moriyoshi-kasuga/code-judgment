@@ -15,14 +15,26 @@ async fn main() {
 
     log::info!("Starting runner...");
 
-    let env = RunnerOption::load().expect("Failed to load environment variables");
+    let option = RunnerOption::load().expect("Failed to load environment variables");
 
-    log::info!("Runner environment: {:#?}", env);
+    log::info!("Runner environment: {:#?}", option);
 
-    let state = RunnerState {
-        option: env,
-        runners: runner::runner::Runners::new(),
+    let runners = match runner::runner::Runners::new() {
+        Ok(runners) => {
+            log::info!("Runners initialized successfully");
+            runners
+        }
+        Err((lang, err)) => {
+            log::error!(
+                "Failed to initialize runner for language {:#?}: {:#?}",
+                lang,
+                err
+            );
+            std::process::exit(1);
+        }
     };
+
+    let state = RunnerState { option, runners };
 
     static STATE: std::sync::OnceLock<RunnerState> = std::sync::OnceLock::new();
 

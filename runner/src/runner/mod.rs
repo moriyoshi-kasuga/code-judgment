@@ -1,4 +1,4 @@
-#![allow(clippy::expect_used, clippy::panic)]
+#![deny(clippy::panic)]
 
 use runner_schema::Language;
 
@@ -14,10 +14,10 @@ pub struct Runners {
 
 impl Runners {
     #[allow(clippy::new_without_default)]
-    pub fn new() -> Self {
-        let map = enum_table::EnumTable::new_with_fn(lang_into_runner);
+    pub fn new() -> Result<Self, (&'static Language, Box<dyn std::error::Error>)> {
+        let map = enum_table::EnumTable::try_new_with_fn(lang_into_runner)?;
 
-        Self { map }
+        Ok(Self { map })
     }
 
     pub fn get(&self, lang: &Language) -> &LangRunner {
@@ -88,10 +88,10 @@ impl LangRunner {
     }
 }
 
-pub(super) fn lang_into_runner(lang: &Language) -> LangRunner {
-    match lang {
+pub(super) fn lang_into_runner(lang: &Language) -> Result<LangRunner, Box<dyn std::error::Error>> {
+    Ok(match lang {
         Language::Rust1_82 => rust::rust(),
-        Language::Go1_23 => go::go(),
+        Language::Go1_23 => go::go()?,
         Language::Python3_13 => python::python(),
-    }
+    })
 }

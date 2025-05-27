@@ -205,18 +205,18 @@ dependencies = [
 
 [[package]]
 name = "enum-table"
-version = "0.3.1"
+version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ca08cc69cbf07f8897261d40b340e7ab33630cbc3696bd15221115d2dd895b2d"
+checksum = "f59fd859e5294615831bc3ee834ede1812332e9df260b183eba83391d82787a2"
 dependencies = [
  "enum-table-derive",
 ]
 
 [[package]]
 name = "enum-table-derive"
-version = "0.3.1"
+version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a36a86c626b012c8e6be46b7c930019ce02617eb5828b1fdfb8ecff9ffbea992"
+checksum = "de36949a7f72b0b7256c3b808261ba5b9aa76944a62ea5936067123cb576774d"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -522,13 +522,13 @@ dependencies = [
 
 [[package]]
 name = "mio"
-version = "1.0.3"
+version = "1.0.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2886843bf800fba2e3377cff24abf6379b4c4d5c6681eaf9ea5b0d15090450bd"
+checksum = "78bed444cc8a2160f01cbcf811ef18cac863ad68ae8ca62092e8db51d51c761c"
 dependencies = [
  "libc",
  "wasi 0.11.0+wasi-snapshot-preview1",
- "windows-sys 0.52.0",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
@@ -864,9 +864,9 @@ checksum = "8917285742e9f3e1683f0a9c4e6b57960b7314d0b08d30d1ecd426713ee2eee9"
 
 [[package]]
 name = "socket2"
-version = "0.5.9"
+version = "0.5.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4f5fd57c80058a56cf5c777ab8a126398ece8e442983605d280a44ce79d0edef"
+checksum = "e22376abed350d73dd1cd119b57ffccad95b4e585a7cda43e286245ce23c0678"
 dependencies = [
  "libc",
  "windows-sys 0.52.0",

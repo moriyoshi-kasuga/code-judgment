@@ -16,7 +16,7 @@ thiserror = { version = "=2.0.12" }
 tokio = { version = "=1.45.0", features = ["full"] }
 axum = { version = "=0.8.4", features = ["json"] }
 more-convert = { version = "=0.13.0" }
-enum-table = "=0.3.1"
+enum-table = "=0.4.0"
 envman = { version = "=1.2.3", features = ["derive"] }
 log = "=0.4.27"
 ulid = "=1.2.1"
